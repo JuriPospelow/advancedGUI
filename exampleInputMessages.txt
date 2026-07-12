@@ -1,0 +1,53 @@
+Example input messages form three devices.
+
+for device 1
+  {
+    "state": "IDLE",
+    "pdu": "ON",
+    "con": "CONNECTED,DISCONNECTED",
+    "shutter": "UNKNOWN",
+    "power": 50,
+    "ilck": "UNKNOWN",
+    "detail": {
+      "Mode": "MAN",
+      "Ctrl": "REMOTE",
+      "Laser": "STB",
+      "Gate": "UP",
+      "PwmFreq": "20kHz",
+      "LoP": "DIS",
+      "PwmMax": "99%",
+      "Pwm": 50
+    }
+
+for device 2
+  {
+    "state": "READY",
+    "pdu": "ON",
+    "con": "CONNECTED",
+    "shutter": "UNKNOWN",
+    "ilck": "OPEN",
+    "power": 0,
+    "detail": {
+      "LaserOn": 0,
+      "Interlock": "0",
+      "TriggerMode": "qcw",
+      "Setpoint": 0,
+      "T1": "stable"
+    }
+
+for device 3
+  {
+    "state": "READY",
+    "pdu": "ON",
+    "con": "CONNECTED",
+    "shutter": "UNKNOWN",
+    "ilck": "OPEN",
+    "power": 0,
+    "detail": {
+      "LaserOn": 0,
+      "Interlock": "0",
+      "TriggerMode": "qcw",
+      "Setpoint": 0,
+      "T1": "stable",
+      "T2": "stable"
+    }
