@@ -1,0 +1,9 @@
+The goal of project p9
+
+Creating a web GUI using p5-basicGUI.
+Extending the p5 project with the following new features:
+	- supporting the use of Unix sockets
+	- generating a table structure in the web interface
+	  based on the JSON structure of incoming messages
+	- supporting different user levels 
+	  
