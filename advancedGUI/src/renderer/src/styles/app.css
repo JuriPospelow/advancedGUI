@@ -8,30 +8,39 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: #f5f5f5;
   color: #333;
-  display: flex;
-  justify-content: center;
-  padding: 2rem;
+  padding: 1rem;
 }
 
 #app {
-  max-width: 480px;
-  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 h1 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
+}
+
+#device-count {
+  font-size: 0.8rem;
+  color: #666;
 }
 
 #status {
-  font-size: 0.875rem;
-  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
   border-radius: 999px;
 }
 
@@ -45,31 +54,49 @@ h1 {
   color: #721c24;
 }
 
-#counter-section {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-#counter-value {
-  font-size: 4rem;
-  font-weight: 700;
-  color: #007bff;
-}
-
-#controls {
+#tabs {
   display: flex;
-  gap: 0.5rem;
-  justify-content: center;
+  gap: 0;
+  border-bottom: 2px solid #ddd;
+  margin-bottom: 1rem;
+}
+
+.tab {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.9rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  color: #666;
+}
+
+.tab:hover {
+  color: #333;
+}
+
+.tab.active {
+  color: #007bff;
+  border-bottom-color: #007bff;
+  font-weight: 600;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
 }
 
 button {
-  padding: 0.5rem 1.5rem;
-  font-size: 1rem;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.85rem;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 5px;
   background: #fff;
   cursor: pointer;
-  transition: background 0.15s;
 }
 
 button:hover:not(:disabled) {
@@ -79,4 +106,133 @@ button:hover:not(:disabled) {
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Login overlay */
+#login-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.login-dialog {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.login-dialog input {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#login-error {
+  color: #d32f2f;
+  font-size: 0.85rem;
+}
+
+/* Pivot table */
+.pivot-group {
+  margin-bottom: 1.5rem;
+}
+
+.pivot-group h3 {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.pivot-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.pivot-table th,
+.pivot-table td {
+  border: 1px solid #ddd;
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.pivot-table th {
+  background: #f0f0f0;
+  font-weight: 600;
+}
+
+.pivot-table td.field-label {
+  font-weight: 500;
+  color: #555;
+  background: #fafafa;
+}
+
+/* Config checkboxes */
+.config-section {
+  margin-bottom: 1rem;
+}
+
+.config-section h3 {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.config-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.config-field label {
+  font-size: 0.85rem;
+}
+
+/* Health */
+.health-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.health-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 1rem;
+}
+
+.health-card h3 {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.health-card .value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.health-card .value.green { color: #2e7d32; }
+.health-card .value.yellow { color: #f57f17; }
+.health-card .value.red { color: #d32f2f; }
+
+#health-error {
+  color: #d32f2f;
+  font-size: 0.9rem;
 }
