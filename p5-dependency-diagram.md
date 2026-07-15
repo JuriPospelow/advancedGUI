@@ -1,0 +1,156 @@
+# Dependency Diagram — p5-basicGUI
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         FRONTEND (Browser)                         │
+│                                                                     │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │  index.html                                                 │   │
+│  │  ┌─────────────────────────────────────────────────────┐    │   │
+│  │  │  main.js                                            │    │   │
+│  │  │  • WebSocket connect/disconnect/reconnect           │    │   │
+│  │  │  • Receive mock/counter → update DOM (#counter-value)│    │   │
+│  │  │  • Send start/stop/reset commands via WS             │    │   │
+│  │  └─────────────────────────────────────────────────────┘    │   │
+│  │  ┌─────────────────────────────────────────────────────┐    │   │
+│  │  │  app.css (styles)                                   │    │   │
+│  │  └─────────────────────────────────────────────────────┘    │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+└───────────────────────────────────┬─────────────────────────────────┘
+                                    │  WebSocket (ws://host/ws)
+                                    │  Protocol: {topic, payload}
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    BACKEND (Node.js + Express)                      │
+│                                                                     │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │                     main/index.ts  (ENTRY POINT)              │   │
+│  │                                                              │   │
+│  │  ┌──────────────────────────────────────────────┐            │   │
+│  │  │  Bootstrap order:                             │            │   │
+│  │  │  1. createBroker()   ───► broker.ts          │            │   │
+│  │  │  2. createMqttConnector()                     │            │   │
+│  │  │  3. createMockDevice(deviceConnector)         │            │   │
+│  │  │  4. createMqttConnector()                     │            │   │
+│  │  │  5. createBridge(bridgeConnector)             │            │   │
+│  │  │  6. Express static files + server.listen()   │            │   │
+│  │  └──────────────────────────────────────────────┘            │   │
+│  └──────────────────────────┬───────────────────────────────────┘   │
+│                             │                                       │
+│              ┌──────────────┼──────────────┬──────────────┐         │
+│              ▼              ▼              ▼              ▼         │
+│  ┌──────────────────┐ ┌──────────┐ ┌──────────────┐ ┌──────────┐   │
+│  │    broker.ts     │ │ bridge.ts│ │mqtt-connector│ │ device.ts│   │
+│  │                  │ │          │ │    .ts       │ │ (mock)   │   │
+│  │  Aedes instance  │ │ MQTT↔WS  │ │              │ │          │   │
+│  │  net.Server on   │ │ relay    │ │ mqtt.js      │ │ Connects │   │
+│  │  dynamic TCP port│ │          │ │ wrapper      │ │ via MQTT │   │
+│  └──────────────────┘ └────┬─────┘ └──────┬───────┘ └────┬─────┘   │
+│                            │              │               │         │
+│                            │     ┌────────┴────────┐      │         │
+│                            │     │ connector.ts     │      │         │
+│                            │     │ (INTERFACE)      │      │         │
+│                            │     │                  │      │         │
+│                            │     │ connect()        │◄─────┘         │
+│                            │     │ disconnect()     │                │
+│                            │     │ publish()        │                │
+│                            │     │ subscribe()      │                │
+│                            │     │ onMessage()      │                │
+│                            │     └────────▲────────┘                │
+│                            │              │                         │
+│                            │   implements └───────────┐              │
+│                            │                           │              │
+│                            ▼                           ▼              │
+│  ┌──────────────────────────────────────────────────────────────┐    │
+│  │  Express Server (embedded in index.ts)                       │    │
+│  │  • serves static files from renderer/                       │    │
+│  │  • WS upgrade on /ws (via bridge.ts)                        │    │
+│  │  • listens on PORT (8080 default)                           │    │
+│  └──────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════
+                            MQTT/TCP
+═══════════════════════════════════════════════════════════════════════
+
+        broker.ts (port 54321)
+             │
+    ┌────────┴────────┐
+    │                 │
+    ▼                 ▼
+mqtt-connector     mqtt-connector
+(for bridge)       (for mock device)
+    │                 │
+    │                 ▼
+    │              device.ts
+    │              (publishes mock/counter)
+    │              (subscribes mock/control)
+    ▼
+bridge.ts
+(forward to WS clients)
+```
+
+## Dependency Matrix
+
+| Module | Imports from | External libraries | Responsibility |
+|--------|-------------|-------------------|----------------|
+| **index.ts** | broker, mqtt-connector, bridge, device | express, http, path, url | Bootstrap, wiring |
+| **broker.ts** | — | aedes, net | MQTT broker lifecycle |
+| **bridge.ts** | connector (interface) | ws, http | MQTT ↔ WS relay |
+| **mqtt-connector.ts** | connector (interface) | mqtt | MQTT transport impl |
+| **device.ts** | connector (interface) | — | Mock device simulation |
+| **connector.ts** | — | — | 5-method interface |
+| **main.js** (frontend) | — | WebSocket API (browser) | WS client + DOM |
+| **index.html** | main.js, app.css | — | Layout |
+| **app.css** | — | — | Styles |
+
+## Data Flow
+
+```
+Mock Device ──MQTT/TCP──► Aedes Broker ──MQTT/TCP──► MqttConnector
+                                                          │
+                                                          ▼
+                                                     bridge.ts
+                                                          │
+                                                      WebSocket
+                                                          │
+                                                          ▼
+                                                     Browser
+                                                    (main.js)
+
+    Browser ──WS──► bridge.ts ──MQTT/TCP──► MqttConnector
+                                                          │
+                                                          ▼
+                                                   Aedes Broker
+                                                          │
+                                                          ▼
+                                                    Mock Device
+```
+
+## Layer Diagram (simplified)
+
+```
+┌──────────────────────────────┐
+│       index.ts               │  ← Bootstrap layer
+├──────────────────────────────┤
+│  bridge.ts    device.ts      │  ← Application layer
+├──────────────────────────────┤
+│  mqtt-connector.ts           │  ← Connector (impl)
+├──────────────────────────────┤
+│  connector.ts                │  ← Interface (port)
+├──────────────────────────────┤
+│  broker.ts                   │  ← Infrastructure
+├──────────────────────────────┤
+│  renderer/                   │  ← Frontend
+└──────────────────────────────┘
+```
+
+## SOLID Notes
+
+| Principle | How p5 satisfies it |
+|-----------|---------------------|
+| **SRP** | Each file has one job (broker, bridge, connector, device) |
+| **OCP** | Adding `unix-connector.ts` requires zero changes to bridge or mock device |
+| **LSP** | Any Connector implementation works interchangeably |
+| **ISP** | Connector has only 5 methods — minimal, not fat |
+| **DIP** | bridge.ts depends on `Connector` interface, not on `mqtt-connector` concretely |
