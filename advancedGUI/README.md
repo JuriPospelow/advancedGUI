@@ -1,6 +1,6 @@
-# simpleGUI
+# advancedGUI
 
-Web GUI for communicating with embedded MQTT devices. Uses the **Backend Bridge Pattern** — the browser never connects to the MQTT broker directly.
+Advanced web GUI for communicating with embedded devices via MQTT and Unix sockets. Extends p5-basicGUI with dynamic pivot tables, user permission levels, device lifecycle management, and production-ready monitoring.
 
 ## Prerequisites
 
