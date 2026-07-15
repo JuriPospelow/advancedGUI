@@ -79,6 +79,7 @@ export function createExpressServer(
         brokerPort: 0,
         wsConnections: 0,
         unixConnections: 0,
+        deviceCount: 0,
         lastError: null,
       };
     },

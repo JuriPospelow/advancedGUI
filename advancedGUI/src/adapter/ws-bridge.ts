@@ -83,6 +83,13 @@ export function createWsBridge(
                   clients.set(ws, clientInfo);
                   sendTo(ws, { type: "auth_response", success: true, level: user.level, username: user.username });
                   logger.info(`WS client authenticated: ${user.username} (${user.level})`);
+
+                  const allDevices = deviceManager.getAll();
+                  const joined: Record<string, Record<string, string>> = {};
+                  for (const device of allDevices) {
+                    joined[device.deviceId] = {};
+                  }
+                  sendTo(ws, { type: "devices", joined });
                 } else {
                   sendTo(ws, { type: "auth_response", success: false, error: "Invalid credentials" });
                 }
@@ -127,7 +134,11 @@ export function createWsBridge(
       });
 
       deviceManager.onEvent((event) => {
-        broadcast({ type: "device_event", deviceId: event.deviceId, transport: event.transport, event: event.type });
+        if (event.type === "joined") {
+          broadcast({ type: "devices", joined: { [event.deviceId]: {} } });
+        } else if (event.type === "left") {
+          broadcast({ type: "devices", left: [event.deviceId] });
+        }
       });
     },
 
