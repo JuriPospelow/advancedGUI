@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>simpleGUI</title>
+  <link rel="stylesheet" href="src/styles/app.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>simpleGUI</h1>
+      <span id="status" class="disconnected">disconnected</span>
+    </header>
+
+    <main>
+      <section id="counter-section">
+        <h2>Mock Counter</h2>
+        <div id="counter-value">—</div>
+      </section>
+
+      <section id="controls">
+        <button id="btn-start" disabled>Start</button>
+        <button id="btn-stop" disabled>Stop</button>
+        <button id="btn-reset" disabled>Reset</button>
+      </section>
+    </main>
+  </div>
+
+  <script src="src/main.js"></script>
+</body>
+</html>

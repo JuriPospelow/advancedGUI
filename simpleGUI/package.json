@@ -1,0 +1,32 @@
+{
+  "name": "advancedgui",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Advanced web GUI for communicating with embedded devices (MQTT + Unix sockets). Extends p5-basicGUI.",
+  "scripts": {
+    "start": "tsx src/main/index.ts",
+    "test": "vitest run",
+    "dev": "tsx watch src/main/index.ts"
+  },
+  "dependencies": {
+    "aedes": "^0.51.3",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mqtt": "^5.10.4",
+    "pino": "^9.6.0",
+    "ws": "^8.18.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.23.0",
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.14.0",
+    "@types/ws": "^8.18.1",
+    "eslint": "^9.23.0",
+    "globals": "^17.6.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.30.1",
+    "vitest": "^3.1.1"
+  }
+}
