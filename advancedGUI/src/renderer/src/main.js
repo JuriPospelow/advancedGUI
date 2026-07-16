@@ -3,6 +3,8 @@
 
   const valuesView = new ValuesView($("tab-values"));
   const configView = new ConfigView($("tab-config"));
+  valuesView.setConfigView(configView);
+  configView.onChange = () => valuesView.render();
   const healthView = new HealthView($("tab-health"));
   const mockView = new MockView($("tab-mock"));
   const logView = new LogView($("tab-log"));

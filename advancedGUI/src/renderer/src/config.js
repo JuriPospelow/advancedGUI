@@ -5,6 +5,7 @@ class ConfigView {
     this.container = container;
     this.devices = {};
     this.selections = this._load();
+    this.onChange = null;
   }
 
   upsertDevice(id, data) {
@@ -79,6 +80,7 @@ class ConfigView {
     }
     this.selections[id] = selected.length > 0 ? selected : [];
     this._save();
+    this.onChange?.();
     this.render();
   }
 

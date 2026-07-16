@@ -4,6 +4,11 @@ class ValuesView {
   constructor(container) {
     this.container = container;
     this.devices = {};
+    this.configView = null;
+  }
+
+  setConfigView(cv) {
+    this.configView = cv;
   }
 
   upsertDevice(id, data) {
@@ -20,7 +25,12 @@ class ValuesView {
     const groups = this._groupDevices();
     this.container.innerHTML = "";
     for (const [keySet, deviceIds] of Object.entries(groups)) {
-      const fields = keySet === "" ? [] : keySet.split(",");
+      const allFields = keySet === "" ? [] : keySet.split(",");
+      if (allFields.length === 0) continue;
+
+      const fields = allFields.filter((f) =>
+        deviceIds.some((id) => !this.configView || this.configView.isSelected(id, f))
+      );
       if (fields.length === 0) continue;
 
       const groupDiv = document.createElement("div");
@@ -56,7 +66,12 @@ class ValuesView {
         for (const id of deviceIds) {
           const td = document.createElement("td");
           const device = this.devices[id];
-          td.textContent = device && device[field] !== undefined ? device[field] : "—";
+          if (this.configView && !this.configView.isSelected(id, field)) {
+            td.textContent = "—";
+            td.className = "dimmed";
+          } else {
+            td.textContent = device && device[field] !== undefined ? device[field] : "—";
+          }
           tr.appendChild(td);
         }
         tbody.appendChild(tr);

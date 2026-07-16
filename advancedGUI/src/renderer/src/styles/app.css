@@ -182,6 +182,10 @@ button:disabled {
   background: #fafafa;
 }
 
+.pivot-table td.dimmed {
+  color: #ccc;
+}
+
 /* Config checkboxes */
 .config-section {
   margin-bottom: 1rem;
