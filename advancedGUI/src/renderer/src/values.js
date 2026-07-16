@@ -25,12 +25,7 @@ class ValuesView {
     const groups = this._groupDevices();
     this.container.innerHTML = "";
     for (const [keySet, deviceIds] of Object.entries(groups)) {
-      const allFields = keySet === "" ? [] : keySet.split(",");
-      if (allFields.length === 0) continue;
-
-      const fields = allFields.filter((f) =>
-        deviceIds.some((id) => !this.configView || this.configView.isSelected(id, f))
-      );
+      const fields = keySet === "" ? [] : keySet.split(",");
       if (fields.length === 0) continue;
 
       const groupDiv = document.createElement("div");
