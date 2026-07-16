@@ -4,7 +4,15 @@ export interface Shutdownable {
   stop(): Promise<void>;
 }
 
-const FORCE_EXIT_MS = 3000;
+const FORCE_EXIT_MS = 4000;
+const STOP_TIMEOUT_MS = 2000;
+
+function timeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)),
+  ]);
+}
 
 export function createShutdownHandler(
   logger: Logger,
@@ -22,11 +30,12 @@ export function createShutdownHandler(
       process.exit(1);
     }, FORCE_EXIT_MS);
 
-    for (const service of services) {
+    for (let i = 0; i < services.length; i++) {
       try {
-        await service.stop();
+        logger.info(`Shutdown step ${i + 1}/${services.length}`);
+        await timeout(services[i].stop(), STOP_TIMEOUT_MS, `Service ${i + 1}`);
       } catch (err) {
-        logger.error(`Shutdown error: ${err}`);
+        logger.error(`Shutdown step ${i + 1} error: ${err}`);
       }
     }
 

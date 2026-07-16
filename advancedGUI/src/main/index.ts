@@ -47,12 +47,16 @@ async function main() {
   unixScanner.onEvent((event) => {
     if (event.type === "joined") {
       deviceManager.join(event.deviceId, "unix", new Set());
+      logger.info(`Device joined: ${event.deviceId} (unix)`);
     } else {
       deviceManager.leave(event.deviceId);
+      logger.info(`Device left: ${event.deviceId} (unix)`);
     }
   });
   unixScanner.onData((deviceId, fields) => {
-    wsBridge.broadcast({ type: "devices", updated: { [deviceId]: flattenFields(fields) } });
+    const flat = flattenFields(fields);
+    logger.debug(`Unix data [${deviceId}]: ${JSON.stringify(flat)}`);
+    wsBridge.broadcast({ type: "devices", updated: { [deviceId]: flat } });
   });
   await unixScanner.start();
 
@@ -61,12 +65,16 @@ async function main() {
   mqttScanner.onEvent((event) => {
     if (event.type === "joined") {
       deviceManager.join(event.deviceId, "mqtt", new Set());
+      logger.info(`Device joined: ${event.deviceId} (mqtt)`);
     } else {
       deviceManager.leave(event.deviceId);
+      logger.info(`Device left: ${event.deviceId} (mqtt)`);
     }
   });
   mqttScanner.onData((deviceId, fields) => {
-    wsBridge.broadcast({ type: "devices", updated: { [deviceId]: flattenFields(fields) } });
+    const flat = flattenFields(fields);
+    logger.debug(`MQTT data [${deviceId}]: ${JSON.stringify(flat)}`);
+    wsBridge.broadcast({ type: "devices", updated: { [deviceId]: flat } });
   });
   await mqttScanner.start();
 
@@ -119,7 +127,7 @@ async function main() {
   }
 
   // --- Graceful shutdown ---
-  const shutdown = createShutdownHandler(logger, wsBridge, expressServer, unixScanner, mqttScanner, broker, ...mocks);
+  const shutdown = createShutdownHandler(logger, ...mocks, wsBridge, expressServer, unixScanner, mqttScanner, broker);
   process.on("SIGTERM", shutdown);
   process.on("SIGINT", shutdown);
 }

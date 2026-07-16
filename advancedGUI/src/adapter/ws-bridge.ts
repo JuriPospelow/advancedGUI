@@ -29,6 +29,7 @@ export function createWsBridge(
 
   function broadcast(msg: unknown): void {
     const data = JSON.stringify(msg);
+    logger.debug(`WS broadcast: ${data.slice(0, 500)}`);
     for (const { ws } of clients.values()) {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(data);
@@ -91,9 +92,12 @@ export function createWsBridge(
                   for (const device of allDevices) {
                     joined[device.deviceId] = {};
                   }
+                  logger.info(`Auth success: sending ${allDevices.length} devices to ${user.username}`);
                   sendTo(ws, { type: "devices", joined });
                   if (mockManager) {
-                    sendTo(ws, { type: "mock_state", devices: mockManager.getState() });
+                    const ms = mockManager.getState();
+                    logger.info(`Sending mock state to ${user.username}: ${JSON.stringify(ms)}`);
+                    sendTo(ws, { type: "mock_state", devices: ms });
                   }
                 } else {
                   sendTo(ws, { type: "auth_response", success: false, error: "Invalid credentials" });
@@ -140,8 +144,11 @@ export function createWsBridge(
                   await mockManager.stop(deviceId);
                   logger.info(`Mock device stopped: ${deviceId} (by ${clientInfo.username})`);
                 }
-                broadcast({ type: "mock_state", devices: mockManager.getState() });
+                const mockState = mockManager.getState();
+                logger.info(`Mock state: ${JSON.stringify(mockState)}`);
+                broadcast({ type: "mock_state", devices: mockState });
               } catch (err) {
+                logger.error(`Mock toggle error: ${err}`);
                 sendTo(ws, { type: "error", message: `Mock toggle error: ${err}` });
               }
             }
@@ -164,8 +171,10 @@ export function createWsBridge(
 
       deviceManager.onEvent((event) => {
         if (event.type === "joined") {
+          logger.debug(`Device broadcast joined: ${event.deviceId}`);
           broadcast({ type: "devices", joined: { [event.deviceId]: {} } });
         } else if (event.type === "left") {
+          logger.debug(`Device broadcast left: ${event.deviceId}`);
           broadcast({ type: "devices", left: [event.deviceId] });
         }
       });
@@ -177,7 +186,8 @@ export function createWsBridge(
           ws.close();
         }
         clients.clear();
-        wss.close(() => resolve());
+        wss.close();
+        resolve();
       });
     },
 

@@ -68,6 +68,7 @@ export function createExpressServer(
     stop(): Promise<void> {
       return new Promise((resolve) => {
         httpServer.close(() => resolve());
+        setTimeout(() => resolve(), 1000);
       });
     },
 
