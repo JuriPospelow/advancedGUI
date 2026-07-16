@@ -55,30 +55,30 @@ export class MockManager {
       if (deviceId === "mqtt-counter") {
         const dev = createMqttCounterDevice(conn);
         await dev.start(this.brokerPort);
-        starter = dev;
+        starter = { start: () => dev.start(this.brokerPort), stop: () => dev.stop() };
       } else {
         const dev = createMqttMeasurementDevice(conn);
         await dev.start(this.brokerPort);
-        starter = dev;
+        starter = { start: () => dev.start(this.brokerPort), stop: () => dev.stop() };
       }
     } else {
       const socketPath = `${this.socketDir}/${def.socketPath}`;
       if (deviceId === "unix-counter") {
         const dev = createUnixCounter(socketPath);
-        await dev.start();
-        starter = dev;
+        await dev.start(socketPath);
+        starter = { start: () => dev.start(socketPath), stop: () => dev.stop() };
       } else if (deviceId === "unix-device-a") {
         const dev = createUnixDevice1(socketPath);
-        await dev.start();
-        starter = dev;
+        await dev.start(socketPath);
+        starter = { start: () => dev.start(socketPath), stop: () => dev.stop() };
       } else if (deviceId === "unix-device-b") {
         const dev = createUnixDevice2(socketPath);
-        await dev.start();
-        starter = dev;
+        await dev.start(socketPath);
+        starter = { start: () => dev.start(socketPath), stop: () => dev.stop() };
       } else {
         const dev = createUnixDevice3(socketPath);
-        await dev.start();
-        starter = dev;
+        await dev.start(socketPath);
+        starter = { start: () => dev.start(socketPath), stop: () => dev.stop() };
       }
     }
 

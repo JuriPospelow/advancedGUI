@@ -21,7 +21,7 @@ describe("ExpressServer", () => {
     const logger = createPinoLogger("silent");
     server = createExpressServer(logger, null as never, () => ({
       status: "ok", uptime: 10, version: "0.2.0",
-      brokerPort: 0, wsConnections: 0, unixConnections: 0, lastError: null,
+      brokerPort: 0, wsConnections: 0, unixConnections: 0, deviceCount: 0, lastError: null,
     }));
     await server.start(0);
     const addr = server.httpServer.address();
