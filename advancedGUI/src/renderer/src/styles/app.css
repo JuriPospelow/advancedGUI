@@ -301,3 +301,57 @@ button:disabled {
 .mock-toggle.off:hover {
   background: #bdbdbd;
 }
+
+/* Log tab */
+.log-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.log-count {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.log-list {
+  max-height: 70vh;
+  overflow-y: auto;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.75rem;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  border-radius: 6px;
+  padding: 0.5rem;
+}
+
+.log-entry {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.15rem 0;
+  border-bottom: 1px solid #2a2a2a;
+  word-break: break-all;
+}
+
+.log-time {
+  color: #888;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.log-type {
+  font-weight: 600;
+  min-width: 5rem;
+  flex-shrink: 0;
+}
+
+.log-type-devices { color: #4fc3f7; }
+.log-type-mock_state { color: #aed581; }
+.log-type-auth_response { color: #ffb74d; }
+.log-type-error { color: #e57373; }
+.log-type-command { color: #ce93d8; }
+
+.log-content {
+  color: #aaa;
+}

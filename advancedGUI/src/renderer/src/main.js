@@ -5,6 +5,7 @@
   const configView = new ConfigView($("tab-config"));
   const healthView = new HealthView($("tab-health"));
   const mockView = new MockView($("tab-mock"));
+  const logView = new LogView($("tab-log"));
 
   let ws = null;
   let authToken = null;
@@ -99,6 +100,7 @@
     };
 
     ws.onmessage = (event) => {
+      logView.push(event, event.data);
       try {
         const msg = JSON.parse(event.data);
         if (msg.type === "devices") {
