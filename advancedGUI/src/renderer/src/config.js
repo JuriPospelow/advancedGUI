@@ -1,23 +1,41 @@
 const STORAGE_KEY = "advancedgui-config";
+const ALL_FIELDS_KEY = "advancedgui-allfields";
 
 class ConfigView {
   constructor(container) {
     this.container = container;
     this.devices = {};
     this.selections = this._load();
+    this.allFields = this._loadAll();
     this.onChange = null;
   }
 
   upsertDevice(id, data) {
-    this.devices[id] = Object.keys(data);
+    const fields = Object.keys(data);
+    this.devices[id] = fields;
+    this._trackFields(id, fields);
     this._ensureDefaults(id);
     this.render();
+  }
+
+  _trackFields(id, fields) {
+    if (!this.allFields[id]) this.allFields[id] = [];
+    let changed = false;
+    for (const f of fields) {
+      if (!this.allFields[id].includes(f)) {
+        this.allFields[id].push(f);
+        changed = true;
+      }
+    }
+    if (changed) this._saveAll();
   }
 
   removeDevice(id) {
     delete this.devices[id];
     delete this.selections[id];
+    delete this.allFields[id];
     this._save();
+    this._saveAll();
     this.render();
   }
 
@@ -108,10 +126,13 @@ class ConfigView {
       this._save();
     } else {
       let changed = false;
+      const known = this.allFields[id] || [];
       for (const f of fields) {
-        if (!this.selections[id].includes(f)) {
-          this.selections[id].push(f);
-          changed = true;
+        if (!known.includes(f)) {
+          if (!this.selections[id].includes(f)) {
+            this.selections[id].push(f);
+            changed = true;
+          }
         }
       }
       if (changed) this._save();
@@ -137,5 +158,17 @@ class ConfigView {
 
   _save() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(this.selections));
+  }
+
+  _loadAll() {
+    try {
+      return JSON.parse(localStorage.getItem(ALL_FIELDS_KEY)) || {};
+    } catch {
+      return {};
+    }
+  }
+
+  _saveAll() {
+    localStorage.setItem(ALL_FIELDS_KEY, JSON.stringify(this.allFields));
   }
 }
