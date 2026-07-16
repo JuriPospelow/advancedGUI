@@ -21,7 +21,7 @@ export function createMqttMeasurementDevice(connector: Connector): MqttMeasureme
           humidity: rand(40, 80),
           pressure: rand(1000, 1020),
         });
-        await connector.publish("mock/measurement", payload);
+        await connector.publish("measurement", payload);
       }, 2000);
     },
 

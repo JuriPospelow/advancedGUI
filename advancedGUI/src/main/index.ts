@@ -61,7 +61,7 @@ async function main() {
   await unixScanner.start();
 
   // --- MQTT scanner ---
-  const mqttScanner = createMqttScanner({ brokerPort, configTopic: "mock/#", deviceIdPrefix: "mqtt-" });
+  const mqttScanner = createMqttScanner({ brokerPort, configTopic: "#", deviceIdPrefix: "mqtt-" });
   mqttScanner.onEvent((event) => {
     if (event.type === "joined") {
       deviceManager.join(event.deviceId, "mqtt", new Set());

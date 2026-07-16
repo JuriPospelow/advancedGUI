@@ -14,7 +14,7 @@ export function createMqttCounterDevice(connector: Connector): MqttCounterDevice
       await connector.connect(port);
       interval = setInterval(async () => {
         count++;
-        await connector.publish("mock/counter", JSON.stringify({ count }));
+        await connector.publish("counter", JSON.stringify({ count }));
       }, 2000);
     },
 
