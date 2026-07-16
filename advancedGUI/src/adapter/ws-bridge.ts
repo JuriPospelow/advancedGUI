@@ -23,7 +23,7 @@ export function createWsBridge(
   logger: Logger,
   deviceManager: DeviceManager,
   mockManager?: MockManager,
-): { start: () => void; stop: () => Promise<void>; broadcast: (msg: unknown) => void } {
+): { start: () => void; stop: () => Promise<void>; broadcast: (msg: unknown) => void; clientCount: () => number } {
   const clients = new Map<WebSocket, WsClient>();
   let wss: WebSocketServer;
 
@@ -192,5 +192,6 @@ export function createWsBridge(
     },
 
     broadcast,
+    clientCount: () => clients.size,
   };
 }

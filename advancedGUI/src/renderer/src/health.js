@@ -48,7 +48,7 @@ class HealthView {
       { label: "Version", value: data.version ?? "—" },
       { label: "Devices", value: data.deviceCount ?? 0 },
       { label: "Broker Port", value: data.brokerPort ?? "—" },
-      { label: "WS Clients", value: data.wsClients ?? 0 },
+      { label: "WS Clients", value: data.wsConnections ?? 0 },
       { label: "Status", value: data.error ? "Error" : "OK", cls: data.error ? "red" : "green" },
     ];
 

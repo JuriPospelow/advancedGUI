@@ -79,7 +79,7 @@ async function main() {
   await mqttScanner.start();
 
   // --- Express + WS ---
-  const expressServer = createExpressServer(logger, userStore, () => {
+  let getHealthCb = () => {
     const devices = deviceManager.getAll();
     return createHealthData(
       Math.floor(process.uptime()),
@@ -90,7 +90,8 @@ async function main() {
       devices.length,
       null,
     );
-  });
+  };
+  const expressServer = createExpressServer(logger, userStore, () => getHealthCb());
 
   const wsBridge = createWsBridge(
     expressServer.httpServer,
@@ -101,6 +102,19 @@ async function main() {
     mockManager,
   );
   wsBridge.start();
+
+  getHealthCb = () => {
+    const devices = deviceManager.getAll();
+    return createHealthData(
+      Math.floor(process.uptime()),
+      "0.2.0",
+      brokerPort,
+      wsBridge.clientCount(),
+      devices.filter((d) => d.transport === "unix").length,
+      devices.length,
+      null,
+    );
+  };
 
   await expressServer.start(PORT);
 
