@@ -31,6 +31,22 @@ class ConfigView {
 
   render() {
     this.container.innerHTML = "";
+
+    const toolbar = document.createElement("div");
+    toolbar.className = "config-toolbar";
+
+    const selectAllBtn = document.createElement("button");
+    selectAllBtn.textContent = "Select All";
+    selectAllBtn.addEventListener("click", () => this.selectAll());
+    toolbar.appendChild(selectAllBtn);
+
+    const heading = document.createElement("span");
+    heading.className = "config-heading";
+    heading.textContent = "Toggle fields to show in Values tab";
+    toolbar.appendChild(heading);
+
+    this.container.appendChild(toolbar);
+
     for (const [id, fields] of Object.entries(this.devices)) {
       if (fields.length === 0) continue;
 
@@ -85,10 +101,30 @@ class ConfigView {
   }
 
   _ensureDefaults(id) {
+    const fields = this.devices[id];
+    if (!fields) return;
     if (!this.selections[id]) {
-      this.selections[id] = [...this.devices[id]];
+      this.selections[id] = [...fields];
       this._save();
+    } else {
+      let changed = false;
+      for (const f of fields) {
+        if (!this.selections[id].includes(f)) {
+          this.selections[id].push(f);
+          changed = true;
+        }
+      }
+      if (changed) this._save();
     }
+  }
+
+  selectAll() {
+    for (const [id, fields] of Object.entries(this.devices)) {
+      this.selections[id] = [...fields];
+    }
+    this._save();
+    this.onChange?.();
+    this.render();
   }
 
   _load() {
