@@ -236,3 +236,68 @@ button:disabled {
   color: #d32f2f;
   font-size: 0.9rem;
 }
+
+/* Mock tab */
+.mock-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.mock-card-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mock-transport {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.mock-mqtt {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.mock-unix {
+  background: #fce4ec;
+  color: #c62828;
+}
+
+.mock-toggle {
+  min-width: 64px;
+  text-align: center;
+  font-weight: 600;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.mock-toggle.on {
+  background: #4caf50;
+  color: #fff;
+}
+
+.mock-toggle.off {
+  background: #e0e0e0;
+  color: #666;
+}
+
+.mock-toggle.on:hover {
+  background: #388e3c;
+}
+
+.mock-toggle.off:hover {
+  background: #bdbdbd;
+}

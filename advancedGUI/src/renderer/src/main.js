@@ -4,6 +4,7 @@
   const valuesView = new ValuesView($("tab-values"));
   const configView = new ConfigView($("tab-config"));
   const healthView = new HealthView($("tab-health"));
+  const mockView = new MockView($("tab-mock"));
 
   let ws = null;
   let authToken = null;
@@ -76,6 +77,7 @@
   /* --- WebSocket --- */
   function connect() {
     ws = new WebSocket(`ws://${location.host}/ws`);
+    mockView.setWs(ws);
 
     ws.onopen = () => {
       $("status").textContent = "connected";
@@ -114,6 +116,9 @@
           }
           const count = Object.keys(valuesView.devices).length;
           $("device-count").textContent = `${count} device${count !== 1 ? "s" : ""}`;
+        }
+        if (msg.type === "mock_state") {
+          mockView.updateState(msg.devices);
         }
       } catch {
         // ignore malformed

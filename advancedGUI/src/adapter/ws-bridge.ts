@@ -5,6 +5,7 @@ import type { UserStore, UserLevel } from "../port/user-store.js";
 import type { Logger } from "../port/logger.js";
 import { DeviceManager } from "../core/device-manager.js";
 import { canPerform } from "../core/auth-domain.js";
+import type { MockManager } from "./mock-manager.js";
 
 const MAX_TOPIC_LENGTH = 128;
 const MAX_PAYLOAD_LENGTH = 65536;
@@ -21,6 +22,7 @@ export function createWsBridge(
   userStore: UserStore,
   logger: Logger,
   deviceManager: DeviceManager,
+  mockManager?: MockManager,
 ): { start: () => void; stop: () => Promise<void>; broadcast: (msg: unknown) => void } {
   const clients = new Map<WebSocket, WsClient>();
   let wss: WebSocketServer;
@@ -90,6 +92,9 @@ export function createWsBridge(
                     joined[device.deviceId] = {};
                   }
                   sendTo(ws, { type: "devices", joined });
+                  if (mockManager) {
+                    sendTo(ws, { type: "mock_state", devices: mockManager.getState() });
+                  }
                 } else {
                   sendTo(ws, { type: "auth_response", success: false, error: "Invalid credentials" });
                 }
@@ -115,6 +120,30 @@ export function createWsBridge(
               }
               logger.info(`WS command from ${clientInfo.username}: ${topic}`);
               broadcast({ type: "command", topic, payload, from: clientInfo.username });
+            }
+
+            if (msg.type === "mock_toggle" && mockManager) {
+              if (!canPerform(clientInfo.userLevel, "operator")) {
+                sendTo(ws, { type: "error", message: "Insufficient permissions" });
+                return;
+              }
+              const { deviceId, enable } = msg;
+              if (typeof deviceId !== "string") {
+                sendTo(ws, { type: "error", message: "Invalid deviceId" });
+                return;
+              }
+              try {
+                if (enable) {
+                  await mockManager.start(deviceId);
+                  logger.info(`Mock device started: ${deviceId} (by ${clientInfo.username})`);
+                } else {
+                  await mockManager.stop(deviceId);
+                  logger.info(`Mock device stopped: ${deviceId} (by ${clientInfo.username})`);
+                }
+                broadcast({ type: "mock_state", devices: mockManager.getState() });
+              } catch (err) {
+                sendTo(ws, { type: "error", message: `Mock toggle error: ${err}` });
+              }
             }
           } catch {
             sendTo(ws, { type: "error", message: "Malformed message" });
