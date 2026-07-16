@@ -10,6 +10,7 @@
   let ws = null;
   let authToken = null;
   let currentUser = null;
+  let loginCredentials = null;
 
   /* --- Tab routing --- */
   document.querySelectorAll(".tab").forEach((btn) => {
@@ -50,15 +51,20 @@
         return;
       }
       const data = await res.json();
-      authToken = data.token;
-      currentUser = data.user;
+      authToken = data.level;
+      currentUser = {
+        username: data.username,
+        level: data.level,
+        role: data.level === 10 ? "admin" : data.level === 5 ? "operator" : "viewer",
+      };
+      loginCredentials = { username: data.username, password };
       $("login-overlay").classList.add("hidden");
       $("btn-login").classList.add("hidden");
       $("btn-logout").classList.remove("hidden");
       $("btn-logout").textContent = `Logout (${currentUser.role})`;
       healthView.setToken(authToken);
       if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: "auth", token: authToken }));
+        ws.send(JSON.stringify({ type: "auth", ...loginCredentials }));
       }
     } catch (err) {
       $("login-error").textContent = "Connection error";
@@ -69,6 +75,7 @@
   $("btn-logout").addEventListener("click", () => {
     authToken = null;
     currentUser = null;
+    loginCredentials = null;
     $("btn-logout").classList.add("hidden");
     $("btn-login").classList.remove("hidden");
     healthView.setToken(null);
@@ -84,8 +91,8 @@
       $("status").textContent = "connected";
       $("status").className = "connected";
       $("btn-login").classList.remove("hidden");
-      if (authToken) {
-        ws.send(JSON.stringify({ type: "auth", token: authToken }));
+      if (loginCredentials) {
+        ws.send(JSON.stringify({ type: "auth", ...loginCredentials }));
       }
     };
 
