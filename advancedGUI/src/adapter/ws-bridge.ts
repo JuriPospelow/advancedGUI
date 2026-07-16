@@ -21,7 +21,7 @@ export function createWsBridge(
   userStore: UserStore,
   logger: Logger,
   deviceManager: DeviceManager,
-): { start: () => void; stop: () => Promise<void> } {
+): { start: () => void; stop: () => Promise<void>; broadcast: (msg: unknown) => void } {
   const clients = new Map<WebSocket, WsClient>();
   let wss: WebSocketServer;
 
@@ -151,5 +151,7 @@ export function createWsBridge(
         wss.close(() => resolve());
       });
     },
+
+    broadcast,
   };
 }

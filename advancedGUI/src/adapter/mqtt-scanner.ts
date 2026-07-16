@@ -1,5 +1,5 @@
 import { connect } from "mqtt";
-import type { DeviceScanner, DeviceEvent } from "../port/device-scanner.js";
+import type { DeviceScanner, DeviceEvent, DeviceDataHandler } from "../port/device-scanner.js";
 
 export interface MqttScannerConfig {
   brokerPort: number;
@@ -10,8 +10,27 @@ export interface MqttScannerConfig {
 export function createMqttScanner(config: MqttScannerConfig): DeviceScanner {
   let client: ReturnType<typeof connect> | null = null;
   let eventHandler: ((event: DeviceEvent) => void) | null = null;
+  let dataHandler: DeviceDataHandler | null = null;
   const knownDevices = new Set<string>();
   const prefix = config.deviceIdPrefix ?? "mqtt-";
+
+  function parseDeviceId(topic: string): string {
+    return `${prefix}${topic.replace(/\//g, "-")}`;
+  }
+
+  function handleMessage(topic: string, payload: Buffer): void {
+    const deviceId = parseDeviceId(topic);
+    if (!knownDevices.has(deviceId)) {
+      knownDevices.add(deviceId);
+      eventHandler?.({ deviceId, transport: "mqtt", type: "joined" });
+    }
+    try {
+      const fields = JSON.parse(payload.toString());
+      dataHandler?.(deviceId, fields);
+    } catch {
+      // non-JSON payload, ignore data
+    }
+  }
 
   return {
     async start(): Promise<void> {
@@ -22,21 +41,16 @@ export function createMqttScanner(config: MqttScannerConfig): DeviceScanner {
         client!.connect();
       });
 
-      if (config.configTopic) {
+      const topics = [config.configTopic ?? "#"];
+      for (const topic of topics) {
         await new Promise<void>((resolve, reject) => {
-          client!.subscribe(config.configTopic!, (err) => {
+          client!.subscribe(topic, (err) => {
             if (err) reject(err); else resolve();
           });
         });
       }
 
-      client!.on("message", (topic) => {
-        const deviceId = `${prefix}${topic.replace(/\//g, "-")}`;
-        if (!knownDevices.has(deviceId)) {
-          knownDevices.add(deviceId);
-          eventHandler?.({ deviceId, transport: "mqtt", type: "joined" });
-        }
-      });
+      client!.on("message", handleMessage);
     },
 
     async stop(): Promise<void> {
@@ -51,6 +65,10 @@ export function createMqttScanner(config: MqttScannerConfig): DeviceScanner {
 
     onEvent(handler: (event: DeviceEvent) => void): void {
       eventHandler = handler;
+    },
+
+    onData(handler: DeviceDataHandler): void {
+      dataHandler = handler;
     },
   };
 }

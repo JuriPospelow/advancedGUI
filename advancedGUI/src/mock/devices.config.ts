@@ -12,10 +12,10 @@ export function createDevicesConfig(): DevicesConfig {
   return {
     enableMqttCounter: true,
     enableMqttMeasurement: true,
-    enableUnixCounter: false,
-    enableUnixDeviceA: false,
-    enableUnixDeviceB: false,
-    enableUnixDeviceC: false,
+    enableUnixCounter: true,
+    enableUnixDeviceA: true,
+    enableUnixDeviceB: true,
+    enableUnixDeviceC: true,
     unixSocketDir: process.env.UNIX_SOCKET_DIR || "/tmp/sockets",
   };
 }

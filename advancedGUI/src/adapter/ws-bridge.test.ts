@@ -69,4 +69,33 @@ describe("WsBridge", () => {
 
     ws.close();
   }, 10000);
+
+  it("should broadcast custom messages to all clients", async () => {
+    const ws1 = new WebSocket(`ws://localhost:${port}/ws`);
+    const ws2 = new WebSocket(`ws://localhost:${port}/ws`);
+
+    await Promise.all([
+      new Promise<void>((r) => ws1.on("open", () => r())),
+      new Promise<void>((r) => ws2.on("open", () => r())),
+    ]);
+
+    // authenticate both
+    const authMsg = JSON.stringify({ type: "auth", username: "admin", password: "admin" });
+    ws1.send(authMsg);
+    ws2.send(authMsg);
+    await new Promise((r) => setTimeout(r, 300));
+
+    const msgs: string[] = [];
+    ws2.on("message", (data) => msgs.push(data.toString()));
+
+    const testData = { type: "test", value: 123 };
+    bridge.broadcast(testData);
+    await new Promise((r) => setTimeout(r, 200));
+
+    const found = msgs.filter((m) => m.includes('"test"'));
+    expect(found.length).toBeGreaterThanOrEqual(1);
+
+    ws1.close();
+    ws2.close();
+  }, 10000);
 });

@@ -6,7 +6,7 @@ describe("DevicesConfig", () => {
     const cfg = createDevicesConfig();
     expect(cfg.enableMqttCounter).toBe(true);
     expect(cfg.enableMqttMeasurement).toBe(true);
-    expect(cfg.enableUnixCounter).toBe(false);
+    expect(cfg.enableUnixCounter).toBe(true);
     expect(typeof cfg.unixSocketDir).toBe("string");
   });
 });

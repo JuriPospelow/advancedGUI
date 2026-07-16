@@ -1,45 +1,39 @@
-import type { Connector } from "../port/connector.js";
-import { createUnixConnector } from "../adapter/unix-connector.js";
+import { createServer } from "net";
 
 export interface UnixMockDevice {
   start(socketPath: string): Promise<void>;
   stop(): Promise<void>;
 }
 
-function makeStartPublishing(
-  connector: Connector,
-  getRunning: () => boolean,
-  getCount: () => number,
-  increment: () => void,
-): ReturnType<typeof setInterval> {
-  return setInterval(async () => {
-    if (getRunning()) {
-      increment();
-      await connector.publish("mock/counter", JSON.stringify({ count: getCount() }));
-    }
-  }, 2000);
-}
-
 export function createUnixCounter(socketPath: string): UnixMockDevice {
-  const connector = createUnixConnector(socketPath);
   let count = 0;
   let interval: ReturnType<typeof setInterval> | null = null;
-  let running = false;
+
+  const server = createServer((conn) => {
+    conn.on("data", (data) => {
+      const msg = data.toString().trim();
+      if (msg === "state?") {
+        conn.write(JSON.stringify({ count }) + "\n");
+      }
+    });
+  });
 
   return {
-    async start(): Promise<void> {
-      await connector.connect(0);
-      running = true;
-      interval = makeStartPublishing(connector, () => running, () => count, () => { count++; });
+    start(): Promise<void> {
+      return new Promise((resolve, reject) => {
+        server.listen(socketPath, () => {
+          interval = setInterval(() => { count++; }, 3000);
+          resolve();
+        });
+        server.on("error", reject);
+      });
     },
 
-    async stop(): Promise<void> {
-      running = false;
-      if (interval) {
-        clearInterval(interval);
-        interval = null;
-      }
-      await connector.disconnect();
+    stop(): Promise<void> {
+      return new Promise((resolve) => {
+        if (interval) clearInterval(interval);
+        server.close(() => resolve());
+      });
     },
   };
 }
