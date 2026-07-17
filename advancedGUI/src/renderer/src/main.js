@@ -3,6 +3,7 @@
 
   const TAB_LEVEL = { values: 0, config: 1, log: 5, health: 10, mock: 10 };
   const TAB_ROLE = { 0: "guest", 1: "viewer", 5: "operator", 10: "admin" };
+  const LEVEL_MAP = { admin: 10, operator: 5, viewer: 1 };
 
   const valuesView = new ValuesView($("tab-values"));
   const configView = new ConfigView($("tab-config"));
@@ -23,22 +24,19 @@
     return currentUser ? currentUser.level : 0;
   }
 
-function applyTabAccess() {
-  const activeTab = document.querySelector(".tab.active");
-  if (!activeTab) return;
-  const tabName = activeTab.dataset.tab;
-  const section = $(`tab-${tabName}`);
-  const level = userLevel();
-  const required = TAB_LEVEL[tabName];
-  if (level < required) {
-    section.innerHTML = `<div class="access-blocked"><p>Log in as <strong>${TAB_ROLE[required]}</strong> to see this tab.</p></div>`;
-  } else if (level >= required) {
-    section.innerHTML = "";
-    const view = VIEWS[tabName];
-    if (view && typeof view.render === "function") view.render();
-    else if (view && typeof view.refresh === "function") view.refresh();
+  function updateTab(tabName) {
+    const section = $(`tab-${tabName}`);
+    const level = userLevel();
+    const required = TAB_LEVEL[tabName];
+    if (level < required) {
+      section.innerHTML = `<div class="access-blocked"><p>Log in as <strong>${TAB_ROLE[required]}</strong> to see this tab.</p></div>`;
+    } else {
+      section.innerHTML = "";
+      const view = VIEWS[tabName];
+      if (view && typeof view.render === "function") view.render();
+      else if (view && typeof view.refresh === "function") view.refresh();
+    }
   }
-}
 
   /* --- Tab routing --- */
   document.querySelectorAll(".tab").forEach((btn) => {
@@ -47,7 +45,7 @@ function applyTabAccess() {
       document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
       btn.classList.add("active");
       $(`tab-${btn.dataset.tab}`).classList.add("active");
-      applyTabAccess();
+      updateTab(btn.dataset.tab);
     });
   });
 
@@ -83,8 +81,8 @@ function applyTabAccess() {
       authToken = data.level;
       currentUser = {
         username: data.username,
-        level: data.level,
-        role: data.level === 10 ? "admin" : data.level === 5 ? "operator" : "viewer",
+        level: LEVEL_MAP[data.level] || 0,
+        role: data.level,
       };
       loginCredentials = { username: data.username, password };
       $("login-overlay").classList.add("hidden");
@@ -92,7 +90,7 @@ function applyTabAccess() {
       $("btn-logout").classList.remove("hidden");
       $("btn-logout").textContent = `Logout (${currentUser.role})`;
       healthView.setToken(authToken);
-      applyTabAccess();
+      for (const t of Object.keys(TAB_LEVEL)) updateTab(t);
       if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: "auth", ...loginCredentials }));
       }
@@ -109,7 +107,7 @@ function applyTabAccess() {
     $("btn-logout").classList.add("hidden");
     $("btn-login").classList.remove("hidden");
     healthView.setToken(null);
-    applyTabAccess();
+    for (const t of Object.keys(TAB_LEVEL)) updateTab(t);
     if (ws) ws.close();
   });
 
@@ -167,4 +165,5 @@ function applyTabAccess() {
   }
 
   connect();
+  for (const t of Object.keys(TAB_LEVEL)) updateTab(t);
 })();

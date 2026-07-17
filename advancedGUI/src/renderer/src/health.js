@@ -26,10 +26,12 @@ class HealthView {
   }
 
   async _poll() {
+    if (this.container.querySelector(".access-blocked")) return;
     try {
       const res = await fetch("/health", {
         headers: { Authorization: `Bearer ${this.token}` },
       });
+      if (this.container.querySelector(".access-blocked")) return;
       if (!res.ok) {
         if (res.status === 403) {
           this.container.innerHTML = "<p>Access denied. Admin role required.</p>";
@@ -45,6 +47,7 @@ class HealthView {
   }
 
   _render(data) {
+    if (this.container.querySelector(".access-blocked")) return;
     this.lastData = data;
     this.container.innerHTML = "";
     const grid = document.createElement("div");
