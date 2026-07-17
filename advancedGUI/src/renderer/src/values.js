@@ -22,6 +22,7 @@ class ValuesView {
   }
 
   render() {
+    if (this.container.querySelector(".access-blocked")) return;
     const groups = this._groupDevices();
     this.container.innerHTML = "";
     for (const [keySet, deviceIds] of Object.entries(groups)) {

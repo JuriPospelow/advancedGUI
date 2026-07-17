@@ -24,6 +24,7 @@ class MockView {
   }
 
   render() {
+    if (this.container.querySelector(".access-blocked")) return;
     this.container.innerHTML = "";
     for (const def of MOCK_DEVICES) {
       const enabled = this.state[def.id] ?? false;

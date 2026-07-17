@@ -23,21 +23,22 @@
     return currentUser ? currentUser.level : 0;
   }
 
-  function applyTabAccess() {
-    const activeTab = document.querySelector(".tab.active");
-    if (!activeTab) return;
-    const tabName = activeTab.dataset.tab;
-    const section = $(`tab-${tabName}`);
-    const level = userLevel();
-    const required = TAB_LEVEL[tabName];
-    if (level < required) {
-      section.innerHTML = `<p>Log in as <strong>${TAB_ROLE[required]}</strong> to see this tab.</p>`;
-    } else if (level >= required) {
-      const view = VIEWS[tabName];
-      if (view && typeof view.render === "function") view.render();
-      else if (view && typeof view.refresh === "function") view.refresh();
-    }
+function applyTabAccess() {
+  const activeTab = document.querySelector(".tab.active");
+  if (!activeTab) return;
+  const tabName = activeTab.dataset.tab;
+  const section = $(`tab-${tabName}`);
+  const level = userLevel();
+  const required = TAB_LEVEL[tabName];
+  if (level < required) {
+    section.innerHTML = `<div class="access-blocked"><p>Log in as <strong>${TAB_ROLE[required]}</strong> to see this tab.</p></div>`;
+  } else if (level >= required) {
+    section.innerHTML = "";
+    const view = VIEWS[tabName];
+    if (view && typeof view.render === "function") view.render();
+    else if (view && typeof view.refresh === "function") view.refresh();
   }
+}
 
   /* --- Tab routing --- */
   document.querySelectorAll(".tab").forEach((btn) => {

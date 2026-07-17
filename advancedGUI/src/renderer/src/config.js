@@ -48,6 +48,7 @@ class ConfigView {
   }
 
   render() {
+    if (this.container.querySelector(".access-blocked")) return;
     this.container.innerHTML = "";
 
     const toolbar = document.createElement("div");

@@ -7,6 +7,7 @@ class HealthView {
   }
 
   refresh() {
+    if (this.container.querySelector(".access-blocked")) return;
     if (this.lastData) this._render(this.lastData);
   }
 
