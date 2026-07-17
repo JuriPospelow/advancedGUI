@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { createMqttScanner } from "./mqtt-scanner.js";
-import { createBroker } from "../main/broker.js";
-import { createMqttConnector } from "../main/connectors/mqtt-connector.js";
+import { createBroker } from "./broker.js";
+import { createMqttConnector } from "./mqtt-connector.js";
 
 describe("MqttScanner", () => {
   const broker = createBroker();
