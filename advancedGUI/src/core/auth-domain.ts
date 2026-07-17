@@ -18,6 +18,3 @@ export function canPerform(
   return LEVEL_HIERARCHY[userLevel] >= LEVEL_HIERARCHY[requiredLevel];
 }
 
-export function requiresAuth(level: UserLevel): boolean {
-  return level !== "viewer";
-}

@@ -17,8 +17,6 @@ export interface ExpressServer {
   wsPath: string;
 }
 
-export type AuthMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction) => void;
-
 export function createExpressServer(
   logger: Logger,
   userStore: UserStore,
