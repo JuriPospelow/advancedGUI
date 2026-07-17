@@ -3,6 +3,11 @@ class HealthView {
     this.container = container;
     this.interval = null;
     this.token = null;
+    this.lastData = null;
+  }
+
+  refresh() {
+    if (this.lastData) this._render(this.lastData);
   }
 
   setToken(token) {
@@ -39,6 +44,7 @@ class HealthView {
   }
 
   _render(data) {
+    this.lastData = data;
     this.container.innerHTML = "";
     const grid = document.createElement("div");
     grid.className = "health-grid";
