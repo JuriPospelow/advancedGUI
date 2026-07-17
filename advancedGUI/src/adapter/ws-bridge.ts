@@ -25,12 +25,13 @@ export function createWsBridge(
   mockManager?: MockManager,
 ): { start: () => void; stop: () => Promise<void>; broadcast: (msg: unknown) => void; clientCount: () => number } {
   const clients = new Map<WebSocket, WsClient>();
+  const sockets = new Set<WebSocket>();
   let wss: WebSocketServer;
 
   function broadcast(msg: unknown): void {
     const data = JSON.stringify(msg);
     logger.debug(`WS broadcast: ${data.slice(0, 500)}`);
-    for (const { ws } of clients.values()) {
+    for (const ws of sockets) {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(data);
       }
@@ -57,6 +58,7 @@ export function createWsBridge(
       wss = new WebSocketServer({ server: httpServer, path });
 
       wss.on("connection", (ws) => {
+        sockets.add(ws);
         let authenticated = false;
         let clientInfo: WsClient | null = null;
 
@@ -66,6 +68,19 @@ export function createWsBridge(
             ws.close();
           }
         }, 10000);
+
+        // Send current device snapshot immediately (even before auth)
+        {
+          const allDevices = deviceManager.getAll();
+          const joined: Record<string, Record<string, string>> = {};
+          for (const device of allDevices) {
+            joined[device.deviceId] = {};
+          }
+          sendTo(ws, { type: "devices", joined });
+          if (mockManager) {
+            sendTo(ws, { type: "mock_state", devices: mockManager.getState() });
+          }
+        }
 
         ws.on("message", async (raw) => {
           try {
@@ -158,6 +173,7 @@ export function createWsBridge(
         });
 
         ws.on("close", () => {
+          sockets.delete(ws);
           clients.delete(ws);
           if (clientInfo) {
             logger.info(`WS client disconnected: ${clientInfo.username}`);
@@ -165,6 +181,7 @@ export function createWsBridge(
         });
 
         ws.on("error", () => {
+          sockets.delete(ws);
           clients.delete(ws);
         });
       });
@@ -182,9 +199,10 @@ export function createWsBridge(
 
     stop(): Promise<void> {
       return new Promise((resolve) => {
-        for (const { ws } of clients.values()) {
+        for (const ws of sockets) {
           ws.close();
         }
+        sockets.clear();
         clients.clear();
         wss.close();
         resolve();
@@ -192,6 +210,6 @@ export function createWsBridge(
     },
 
     broadcast,
-    clientCount: () => clients.size,
+    clientCount: () => sockets.size,
   };
 }
