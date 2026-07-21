@@ -31,7 +31,7 @@ describe("e2e", () => {
     deviceManager.join("test-device", "unix", new Set(["state", "pdu", "con"]));
 
     server = createExpressServer(logger, userStore, () =>
-      createHealthData(42, "0.2.0", brokerPort, 0, 1, null),
+      createHealthData(42, "0.2.0", 8080, brokerPort, 0, 1, null),
     );
 
     wsBridge = createWsBridge(

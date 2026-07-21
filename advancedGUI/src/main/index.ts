@@ -85,6 +85,7 @@ async function main() {
     return createHealthData(
       Math.floor(process.uptime()),
       "0.2.0",
+      PORT,
       brokerPort,
       0,
       devices.filter((d) => d.transport === "unix").length,
@@ -109,6 +110,7 @@ async function main() {
     return createHealthData(
       Math.floor(process.uptime()),
       "0.2.0",
+      PORT,
       brokerPort,
       wsBridge.clientCount(),
       devices.filter((d) => d.transport === "unix").length,

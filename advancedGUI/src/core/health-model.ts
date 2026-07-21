@@ -2,6 +2,7 @@ export interface HealthData {
   status: "ok" | "degraded" | "down";
   uptime: number;
   version: string;
+  httpPort: number;
   brokerPort: number;
   wsConnections: number;
   unixConnections: number;
@@ -12,6 +13,7 @@ export interface HealthData {
 export function createHealthData(
   uptime: number,
   version: string,
+  httpPort: number,
   brokerPort: number,
   wsConnections: number,
   unixConnections: number,
@@ -19,5 +21,5 @@ export function createHealthData(
   lastError: string | null = null,
 ): HealthData {
   const status: HealthData["status"] = lastError ? "degraded" : "ok";
-  return { status, uptime, version, brokerPort, wsConnections, unixConnections, deviceCount, lastError };
+  return { status, uptime, version, httpPort, brokerPort, wsConnections, unixConnections, deviceCount, lastError };
 }

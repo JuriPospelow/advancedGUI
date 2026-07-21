@@ -57,7 +57,8 @@ class HealthView {
       { label: "Uptime", value: `${data.uptime ?? 0}s` },
       { label: "Version", value: data.version ?? "—" },
       { label: "Devices", value: data.deviceCount ?? 0 },
-      { label: "Broker Port", value: data.brokerPort ?? "—" },
+      { label: "HTTP Port", value: data.httpPort ?? "—" },
+      { label: "MQTT Port", value: data.brokerPort ?? "—" },
       { label: "WS Clients", value: data.wsConnections ?? 0 },
       { label: "Status", value: data.error ? "Error" : "OK", cls: data.error ? "red" : "green" },
     ];
