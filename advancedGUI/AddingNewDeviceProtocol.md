@@ -67,7 +67,9 @@ Add `serialScanner` to the shutdown handler.
 
 ## 2. Real MQTT device
 
-**Zero code changes.** The Aedes broker is already running on a dynamic port. Any MQTT client that connects and publishes to any topic will be auto-discovered by `mqtt-scanner.ts` (subscribes to `#`, all topics). Just connect your real device to the broker port and publish JSON payloads.
+**Zero code changes.** The Aedes broker is already running. Any MQTT client that connects and publishes to any topic will be auto-discovered by `mqtt-scanner.ts` (subscribes to `#`, all topics). Just connect your real device to the broker and publish JSON payloads.
+
+> **Note:** By default the broker uses a **dynamic port** (0). For external devices (ESP32, etc.) you must set `MQTT_BROKER_PORT` in `.env` to a fixed value, e.g. `MQTT_BROKER_PORT=1883`, then configure your device to connect to `<server-ip>:1883`.
 
 ---
 
