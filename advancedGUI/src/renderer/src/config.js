@@ -13,8 +13,8 @@ class ConfigView {
   upsertDevice(id, data) {
     const fields = Object.keys(data);
     this.devices[id] = fields;
-    this._trackFields(id, fields);
     this._ensureDefaults(id);
+    this._trackFields(id, fields);
     this.render();
   }
 
@@ -55,7 +55,10 @@ class ConfigView {
     toolbar.className = "config-toolbar";
 
     const selectAllBtn = document.createElement("button");
-    selectAllBtn.textContent = "Select All";
+    const someUnchecked = Object.keys(this.devices).some(
+      (id) => (this.selections[id] || []).length === 0,
+    );
+    selectAllBtn.textContent = someUnchecked ? "Select All" : "Deselect All";
     selectAllBtn.addEventListener("click", () => this.selectAll());
     toolbar.appendChild(selectAllBtn);
 
@@ -141,8 +144,12 @@ class ConfigView {
   }
 
   selectAll() {
+    const checkAll = Object.keys(this.devices).some(
+      (id) => (this.selections[id] || []).length === 0,
+    );
     for (const [id, fields] of Object.entries(this.devices)) {
-      this.selections[id] = [...fields];
+      if (fields.length === 0) continue;
+      this.selections[id] = checkAll ? [...fields] : [];
     }
     this._save();
     this.onChange?.();
@@ -158,7 +165,11 @@ class ConfigView {
   }
 
   _save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this.selections));
+    const clean = {};
+    for (const id of Object.keys(this.devices)) {
+      if (id in this.selections) clean[id] = this.selections[id];
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(clean));
   }
 
   _loadAll() {
