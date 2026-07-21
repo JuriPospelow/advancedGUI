@@ -94,3 +94,4 @@ Your real device just needs to listen on a Unix socket and respond to `"state?"`
 - [Watch the Demo Video](https://youtu.be/E_wbnTX-S38)
 - [Adding a New Device Protocol](documentation/AddingNewDeviceProtocol.md)
 - [Technical Architecture](documentation/technicalDescription.md)
+- [Configurable Parameters](documentation/configurableParameters.md)
