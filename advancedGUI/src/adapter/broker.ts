@@ -7,7 +7,7 @@ export interface Broker {
   port(): number;
 }
 
-export function createBroker(): Broker {
+export function createBroker(port?: number): Broker {
   const instance = new aedes();
   const server = createServer(instance.handle);
   let listeningPort = 0;
@@ -15,7 +15,8 @@ export function createBroker(): Broker {
   return {
     start(): Promise<number> {
       return new Promise((resolve, reject) => {
-        server.listen(0, () => {
+        const listenPort = port && port > 0 ? port : 0;
+        server.listen(listenPort, () => {
           const addr = server.address();
           if (addr && typeof addr === "object") {
             listeningPort = addr.port;

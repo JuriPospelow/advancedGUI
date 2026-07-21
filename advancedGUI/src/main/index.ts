@@ -20,6 +20,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = parseInt(process.env.PORT || "8080", 10);
 const UNIX_SOCKET_DIR = process.env.UNIX_SOCKET_DIR || "/tmp/sockets";
 const AUTH_FILE = process.env.AUTH_FILE || resolve(__dirname, "../../.auth.json");
+const MQTT_BROKER_PORT = parseInt(process.env.MQTT_BROKER_PORT || "0", 10);
 
 async function main() {
   const logger = createPinoLogger(process.env.LOG_LEVEL || "info");
@@ -35,7 +36,7 @@ async function main() {
   }
 
   // --- Broker ---
-  const broker = createBroker();
+  const broker = createBroker(MQTT_BROKER_PORT || undefined);
   const brokerPort = await broker.start();
   logger.info(`Broker started on port ${brokerPort}`);
 

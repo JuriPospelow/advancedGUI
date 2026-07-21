@@ -24,6 +24,9 @@ docker build -t advancedgui .
 # 3. Start the container
 docker run -d -p 8080:8080 --init advancedgui
 
+# With custom MQTT broker port (for external device connections):
+docker run -d -p 8080:8080 -p 1883:1883 -e MQTT_BROKER_PORT=1883 --init advancedgui
+
 # 4. Open in browser
 # http://localhost:8080
 
@@ -62,10 +65,16 @@ npm start
 # http://localhost:8080
 ```
 
-Set a custom port:
+Set a custom HTTP port:
 ```bash
 PORT=3000 npm start
 ```
+
+Set a fixed MQTT broker port (for connecting external devices):
+```bash
+MQTT_BROKER_PORT=1883 npm start
+```
+If `MQTT_BROKER_PORT` is not set, the broker picks a random free port (shown in startup log: `Broker started on port XXXXX`).
 
 ## Test
 
