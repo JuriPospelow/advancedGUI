@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+  <style>
+    .box { fill:#f6f8fa; stroke:#2d3748; stroke-width:2; rx:6; }
+    .small { font: 14px/1.2 "Segoe UI", Roboto, Arial, sans-serif; fill:#102027 }
+    .title { font: 16px/1.2 "Segoe UI", Roboto, Arial, sans-serif; font-weight:700; fill:#0b3140 }
+    .connector { stroke:#2d3748; stroke-width:2; marker-end: url(#arrow); }
+    .note { font:12px/1.2 "Segoe UI", Roboto, Arial, sans-serif; fill:#2d3748 }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2d3748" />
+    </marker>
+  </defs>
+
+  <!-- Mock devices -->
+  <rect x="40" y="60" width="220" height="120" class="box"/>
+  <text x="150" y="90" text-anchor="middle" class="title">Mock / Real Devices</text>
+  <text x="150" y="112" text-anchor="middle" class="small">MQTT clients, Unix sockets,</text>
+  <text x="150" y="130" text-anchor="middle" class="small">or physical hardware</text>
+
+  <!-- Broker -->
+  <rect x="320" y="40" width="220" height="160" class="box"/>
+  <text x="430" y="80" text-anchor="middle" class="title">Aedes MQTT Broker</text>
+  <text x="430" y="105" text-anchor="middle" class="small">MQTT publish/subscribe</text>
+
+  <!-- MQTT Scanner -->
+  <rect x="620" y="40" width="200" height="120" class="box"/>
+  <text x="720" y="80" text-anchor="middle" class="title">MQTT Scanner</text>
+  <text x="720" y="100" text-anchor="middle" class="small">Adapter: subscribes to topics</text>
+
+  <!-- Unix Scanner -->
+  <rect x="320" y="240" width="200" height="100" class="box"/>
+  <text x="420" y="270" text-anchor="middle" class="title">Unix Scanner</text>
+  <text x="420" y="290" text-anchor="middle" class="small">Adapter: reads socket files</text>
+
+  <!-- Bridge / WS + Express -->
+  <rect x="620" y="220" width="300" height="140" class="box"/>
+  <text x="770" y="255" text-anchor="middle" class="title">WS Bridge / Express Server</text>
+  <text x="770" y="280" text-anchor="middle" class="small">WebSocket bridge, HTTP UI, auth, health</text>
+
+  <!-- Device Manager core -->
+  <rect x="420" y="380" width="360" height="130" class="box"/>
+  <text x="600" y="410" text-anchor="middle" class="title">Device Manager (Core)</text>
+  <text x="600" y="435" text-anchor="middle" class="small">Device lifecycle, flattening, health model</text>
+
+  <!-- Browser -->
+  <rect x="860" y="420" width="220" height="100" class="box"/>
+  <text x="970" y="450" text-anchor="middle" class="title">Browser Frontend</text>
+  <text x="970" y="470" text-anchor="middle" class="small">WS client, pivot-table UI</text>
+
+  <!-- Arrows -->
+  <path d="M260,120 L320,120" class="connector" />
+  <text x="290" y="110" class="note" text-anchor="middle">MQTT</text>
+
+  <path d="M540,120 L620,120" class="connector" />
+  <text x="580" y="110" class="note" text-anchor="middle">MQTT</text>
+
+  <path d="M760,160 L760,220" class="connector" />
+  <text x="780" y="190" class="note">internal API</text>
+
+  <path d="M240,180 L420,290" class="connector" />
+  <text x="320" y="230" class="note" text-anchor="middle">Unix socket</text>
+
+  <path d="M720,260 L720,360" class="connector" />
+  <text x="740" y="310" class="note">device events</text>
+
+  <path d="M560,420 L520,420" class="connector" />
+  <text x="540" y="410" class="note">joins/leave</text>
+
+  <path d="M680,420 L760,420" class="connector" />
+  <text x="720" y="435" class="note">publish updates</text>
+
+  <path d="M920,480 L860,480" class="connector" />
+  <text x="890" y="495" class="note">WS</text>
+
+  <!-- Additional notes -->
+  <text x="120" y="220" class="note">Adapters: MQTT Scanner, Unix Scanner, MockManager</text>
+  <text x="120" y="238" class="note">Core: Device Manager, Ports (Connector, DeviceScanner, UserStore)</text>
+  <text x="120" y="256" class="note">Other adapters: FileUserStore, Pino Logger</text>
+
+</svg>
