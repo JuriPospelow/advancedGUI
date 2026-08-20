@@ -1,6 +1,6 @@
 # advancedGUI
 
-Advanced web GUI for communicating with embedded devices via MQTT and Unix sockets. Extends p5-basicGUI with dynamic pivot tables, user permission levels, device lifecycle management, and production-ready monitoring.
+Advanced web GUI for communicating with embedded devices via MQTT and Unix sockets. Extends p5-basicGUI with dynamic pivot tables, user permission levels, device lifecycle management, and production-ready features.
 
 ## Prerequisites
 
@@ -95,10 +95,33 @@ Guest (no login) can only see the Values tab.
 ## Architecture
 
 ```
-Mock Device ──MQTT──► Aedes Broker ──MQTT──► Bridge ──WS──► Browser
-                   ┌─────────────┐
-Unix Mock ────────►│ Device Mgr  │──► Bridge ──WS──► Browser
-                   └─────────────┘
+  +----------------+          +--------------------+          +------------------+
+  | Mock Devices   |--MQTT--->|   Aedes Broker     |<--MQTT-->| MQTT Scanner     |
+  | (MQTT / Unix)  |          +--------------------+          +------------------+
+  |  (or real HW)  |                     |                           |
+  +----------------+                     |                           |
+           |                              v                           v
+           |                        +----------------+         +------------------+
+           +--Unix socket/Emu-----> |  Unix Scanner  |         |  Bridge / Client |
+                                    +----------------+         | (WS bridge code) |
+                                                \               +------------------+
+                                                 \                      |
+                                                  v                     v
+                                             +------------------------------------+
+                                             |          Device Manager (core)     |
+                                             |   (device lifecycle, flattening)   |
+                                             +------------------------------------+
+                                                         |       ^
+                                                         |       |
+                                              +----------v-------+-------+
+                                              |  Express HTTP Server (serves UI, |
+                                              |  auth endpoints, health)         |
+                                              +----------------------------------+
+                                                         |
+                                                         v
+                                               Browser Frontend (WS client)
+
+Additional adapters: File-based UserStore, Pino Logger, MockManager (starts/stops simulated devices via broker and DeviceManager)
 ```
 
 - **Core** — Pure domain logic (zero external deps): device lifecycle, auth, data flattening, health model
