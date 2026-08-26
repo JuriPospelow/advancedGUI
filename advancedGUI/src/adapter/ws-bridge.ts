@@ -1,6 +1,5 @@
 import { WebSocketServer, WebSocket } from "ws";
 import type { Server as HttpServer } from "http";
-import type { Connector } from "../port/connector.js";
 import type { UserStore } from "../port/user-store.js";
 import type { Logger } from "../port/logger.js";
 import { DeviceManager } from "../core/device-manager.js";
