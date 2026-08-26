@@ -80,20 +80,23 @@ async function main() {
   await mqttScanner.start();
 
   // --- Express + WS ---
-  let getHealthCb = () => {
+  // why: wsBridge doesn't exist yet when the health callback is built; /health
+  // reads it through this holder so wiring order never matters.
+  const healthRefs = { wsClientCount: (): number => 0 };
+
+  const expressServer = createExpressServer(logger, userStore, () => {
     const devices = deviceManager.getAll();
     return createHealthData(
       Math.floor(process.uptime()),
       "0.2.0",
       PORT,
       brokerPort,
-      0,
+      healthRefs.wsClientCount(),
       devices.filter((d) => d.transport === "unix").length,
       devices.length,
       null,
     );
-  };
-  const expressServer = createExpressServer(logger, userStore, () => getHealthCb());
+  });
 
   const wsBridge = createWsBridge(
     expressServer.httpServer,
@@ -105,19 +108,7 @@ async function main() {
   );
   wsBridge.start();
 
-  getHealthCb = () => {
-    const devices = deviceManager.getAll();
-    return createHealthData(
-      Math.floor(process.uptime()),
-      "0.2.0",
-      PORT,
-      brokerPort,
-      wsBridge.clientCount(),
-      devices.filter((d) => d.transport === "unix").length,
-      devices.length,
-      null,
-    );
-  };
+  healthRefs.wsClientCount = () => wsBridge.clientCount();
 
   await expressServer.start(PORT);
 
