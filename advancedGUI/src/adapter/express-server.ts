@@ -3,7 +3,8 @@ import { createServer, Server as HttpServer } from "http";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import type { Logger } from "../port/logger.js";
-import type { UserStore, UserLevel } from "../port/user-store.js";
+import type { UserStore } from "../port/user-store.js";
+import type { UserLevel } from "../core/auth-domain.js";
 import type { HealthData } from "../core/health-model.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

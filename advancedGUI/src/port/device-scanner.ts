@@ -1,8 +1,4 @@
-export interface DeviceEvent {
-  deviceId: string;
-  type: "joined" | "left";
-  transport: "unix" | "mqtt";
-}
+import type { DeviceEvent } from "../core/device-manager.js";
 
 export type DeviceDataHandler = (deviceId: string, fields: Record<string, unknown>) => void;
 

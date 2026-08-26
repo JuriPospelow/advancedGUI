@@ -2,7 +2,8 @@ import { readdir } from "fs/promises";
 import { existsSync } from "fs";
 import { join, basename, extname } from "path";
 import { createConnection } from "net";
-import type { DeviceScanner, DeviceEvent, DeviceDataHandler } from "../port/device-scanner.js";
+import type { DeviceScanner, DeviceDataHandler } from "../port/device-scanner.js";
+import type { DeviceEvent } from "../core/device-manager.js";
 
 export function createUnixScanner(socketDir: string, pollIntervalMs = 2000): DeviceScanner {
   let timer: ReturnType<typeof setInterval> | null = null;

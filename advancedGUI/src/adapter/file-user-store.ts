@@ -1,6 +1,7 @@
 import { readFile, writeFile } from "fs/promises";
 import { createHash } from "crypto";
-import type { UserStore, User, UserLevel } from "../port/user-store.js";
+import type { UserStore } from "../port/user-store.js";
+import type { User, UserLevel } from "../core/auth-domain.js";
 
 interface AuthEntry {
   username: string;

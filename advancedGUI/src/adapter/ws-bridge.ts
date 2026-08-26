@@ -1,10 +1,11 @@
 import { WebSocketServer, WebSocket } from "ws";
 import type { Server as HttpServer } from "http";
 import type { Connector } from "../port/connector.js";
-import type { UserStore, UserLevel } from "../port/user-store.js";
+import type { UserStore } from "../port/user-store.js";
 import type { Logger } from "../port/logger.js";
 import { DeviceManager } from "../core/device-manager.js";
 import { canPerform } from "../core/auth-domain.js";
+import type { UserLevel } from "../core/auth-domain.js";
 import type { MockManager } from "./mock-manager.js";
 
 const MAX_TOPIC_LENGTH = 128;

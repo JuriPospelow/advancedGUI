@@ -1,5 +1,6 @@
 import { connect } from "mqtt";
-import type { DeviceScanner, DeviceEvent, DeviceDataHandler } from "../port/device-scanner.js";
+import type { DeviceScanner, DeviceDataHandler } from "../port/device-scanner.js";
+import type { DeviceEvent } from "../core/device-manager.js";
 
 export interface MqttScannerConfig {
   brokerPort: number;
