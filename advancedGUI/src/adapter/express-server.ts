@@ -76,6 +76,7 @@ export function createExpressServer(
         status: "ok",
         uptime: Math.floor((Date.now() - startTime) / 1000),
         version: "0.2.0",
+        httpPort: 0,
         brokerPort: 0,
         wsConnections: 0,
         unixConnections: 0,
