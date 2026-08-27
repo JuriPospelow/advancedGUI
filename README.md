@@ -1,97 +1,126 @@
+# AdvancedGUI
+
+> Plug-and-play monitoring platform
+> for multi-protocol IOT devices.
+
+Embedded devices in industrial environments communicate via different protocols — MQTT sensors, Unix socket controllers, serial buses. Currently, operators need separate tools for each protocol. There is no unified real-time view, no role-based access, and adding a new device type requires custom software.
+
+**AdvancedGUI solves this: one dashboard, all devices, zero code changes for new integrations.**
+
+---
+
+## Key Features
+
+- **Real-time monitoring** — live device data via WebSocket, no polling delay
+- **Multi-protocol** — MQTT and Unix sockets today
+- **Clean Architecture's port interface** - adding new transports (serial, CAN, etc.) straightforward — implement one interface, wire it in `main/index.ts`
+- **Zero-code device integration** — auto-discovery for MQTT (subscribe to `#`) and Unix sockets (poll `.sock` directory)
+- **Role-based access** — guest, viewer, operator, admin with per-tab permissions
+- **Dynamic pivot table** — fields as rows, devices as columns, configurable field selection with localStorage persistence
+- **Production-ready** — health endpoint, graceful shutdown, Docker support, structured logging (pino)
+
+---
+
+## Why It Matters
+
+The role-based access system demonstrates that the platform serves different users differently:
+
+| Username | Password | Level | Access |
+|----------|----------|-------|--------|
+| — | — | guest | Values only |
+| `viewer` | `viewer` | viewer | Values + Config |
+| `operator` | `operator` | operator | + Log |
+| `admin` | `admin` | admin | + Health + Mock |
+
+This is not just a data viewer — it's an administration platform where operators can monitor, configure, and manage devices through a single interface.
+
 ![Demo](demo-crop6.gif)
 
-## Table of Contents
+[The same demo with sound](https://youtu.be/E_wbnTX-S38)
 
-- [Prerequisites](#prerequisites)
-- [Quick Start](#quick-start)
-  - [Option A — Docker](#option-a--docker-recommended-no-nodejs-needed)
-  - [Option B — Direct](#option-b--direct-requires-nodejs)
-- [Adding a real MQTT device](#Adding-a-real-mqtt-device)
-- [Adding a real Unix-socket device](#Adding-a-real-unix-socket-device)
-- [Additional Resources](#additional-resources)
+---
 
-## Prerequisites
+## Architecture Overview
 
-Choose **one** of the following:
+```
+Mock Device ──MQTT──► Aedes Broker ──MQTT──► MQTT Scanner ──callback──► Bridge ──WS──► Browser
+                   ┌─────────────┐
+Unix Mock ────────►│ Unix Socket │──► Unix Scanner ──callback──► Bridge ──WS──► Browser
+                   └─────────────┘
+```
 
-- **Option A (Docker):** Docker installed on your system
-- **Option B (direct):** Node.js 18+ and npm 9+
+| Layer | Purpose |
+|---|---|
+| **Core** | Pure domain logic — device lifecycle, auth permissions, data flattening, health model. Zero external dependencies. |
+| **Ports** | Interface contracts (DeviceScanner, UserStore, Logger, Connector) — separate core from infrastructure |
+| **Adapters** | Infrastructure implementations — MQTT/Unix scanners, WebSocket bridge, Express server, file-based user store |
+| **Frontend** | Plain HTML/CSS/JS — no build step, WebSocket API, pivot-table layout |
+
+Full architecture documentation → [component-diagram.md](documentation/component-diagram.md)
+
+---
+
+## Tech Stack
+
+| Category | Technology |
+|---|---|
+| Language | TypeScript (backend), JavaScript (frontend) |
+| Runtime | Node.js 18+ / TSX |
+| Protocols | MQTT (Aedes embedded broker), Unix sockets, WebSocket, HTTP |
+| Framework | Express.js (HTTP), ws (WebSocket) |
+| Logging | pino |
+| Testing | Vitest (35 tests: domain, infrastructure, e2e) |
+| Deployment | Docker (Alpine Linux) |
+| Architecture | Hexagonal (Clean Architecture) |
+
+---
 
 ## Quick Start
 
-### Option A — Docker (recommended, no Node.js needed)
+Run with Docker or Node.js in under a minute:
 
 ```bash
-# 1. Clone
-git clone <repo-url>
-cd p9-advancedGUI/advancedGUI
+# Docker
+docker build -t advancedgui . && docker run -d -p 8080:8080 --init advancedgui
 
-# 2. Build the image (first time only, or after code changes)
-docker build -t advancedgui .
-
-# 3. Start the container
-docker run -d -p 8080:8080 --init advancedgui
-
-# With custom MQTT broker port (for external device connections):
-docker run -d -p 8080:8080 -p 1883:1883 -e MQTT_BROKER_PORT=1883 --init advancedgui
-
-# 4. Open in browser
-# http://localhost:8080
+# Node.js
+npm install && npm start
 ```
 
-### Option B — Direct (requires Node.js)
+Open `http://localhost:8080`. No login required for basic device monitoring.
 
-```bash
-# 1. Clone
-git clone <repo-url>
-cd p9-advancedGUI/advancedGUI
-
-# 2. Install dependencies
-npm install
-
-# 3. Start the server
-npm start
-
-# 4. Open in browser
-# http://localhost:8080
-```
-
-Set a custom HTTP port:
-```bash
-PORT=3000 npm start
-```
-
-Set a fixed MQTT broker port (for connecting external devices):
-```bash
-MQTT_BROKER_PORT=1883 npm start
-```
-If `MQTT_BROKER_PORT` is not set, the broker picks a random free port (shown in startup log: `Broker started on port XXXXX`).
+→ [Full setup guide, Docker options, and device integration](documentation/GettingStarted.md)
 
 ---
 
-## Adding a real MQTT device
+## Adding Real Devices
 
-**Zero code changes.** The Aedes broker is already running. Any MQTT client that connects and publishes to any topic will be auto-discovered by `mqtt-scanner.ts` (subscribes to `#`, all topics). Just connect your real device to the broker and publish JSON payloads.
+Zero code changes — the platform auto-discovers MQTT devices and Unix socket devices.
 
-> **Note:** By default the broker uses a **dynamic port** (0). For external devices (ESP32, etc.) you must set `MQTT_BROKER_PORT` in `.env` to a fixed value, e.g. `MQTT_BROKER_PORT=1883`, then configure your device to connect to `<server-ip>:1883`.
-
----
-
-## Adding a real Unix-socket device
-
-**Zero code changes.** Place a `.sock` file in `UNIX_SOCKET_DIR` (`/tmp/sockets` by default). The `unix-scanner.ts` will:
-
-1. Detect the new `.sock` file → emit `joined` event
-2. Connect to it, send `"state?"` → expect a JSON response
-3. Forward parsed data to the frontend
-
-Your real device just needs to listen on a Unix socket and respond to `"state?"` with a JSON line.
+→ [GettingStarted.md](documentation/GettingStarted.md) for connection details,
+[AddingNewDeviceProtocol.md](documentation/AddingNewDeviceProtocol.md) for new protocols (serial, CAN, etc.)
 
 ---
 
-## Additional Resources
+## Testing
 
-- [Watch the Demo Video](https://youtu.be/E_wbnTX-S38)
-- [Adding a New Device Protocol](documentation/AddingNewDeviceProtocol.md)
-- [Technical Architecture](documentation/technicalDescription.md)
-- [Configurable Parameters](documentation/configurableParameters.md)
+| Type | Count | What |
+|---|---|---|
+| Domain tests | 15 | Pure logic — auth, device lifecycle, flatten, health |
+| Infrastructure tests | 16 | Adapters — MQTT broker, Unix sockets, WS, HTTP, file I/O |
+| E2E tests | 4 | Full stack — page serving, auth, health, WS with auth |
+
+Run: `npm test`
+
+---
+
+## Documentation
+
+| Document | Description |
+|---|---|
+| [Getting Started](documentation/GettingStarted.md) | Setup, Docker, device integration, configuration |
+| [Technical Decisions](documentation/technicalDescription.md) | Architecture, core, infrastructure, UI, test strategy |
+| [Component Diagram](documentation/component-diagram.md) | Detailed ASCII component diagram |
+| [Clean Architecture](documentation/clean-architecture-circles.md) | Hexagonal architecture circles |
+| [Adding New Devices](documentation/AddingNewDeviceProtocol.md) | Guide for new protocols (serial, CAN, etc.) |
+| [Configurable Parameters](documentation/configurableParameters.md) | Environment variables and configuration |
