@@ -34,7 +34,7 @@ The role-based access system demonstrates that the platform serves different use
 
 This is not just a data viewer — it's an administration platform where operators can monitor, configure, and manage devices through a single interface.
 
-![Demo](documentation/images/demo-crop6.gif)
+![Demo](documentation/images/demo.gif)
 
 [The same demo with sound](https://youtu.be/E_wbnTX-S38)
 
