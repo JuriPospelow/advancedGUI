@@ -2,75 +2,7 @@
 
 ## Overview
 
-```
-                    ┌─────────────────────────────────────────────┐
-                    │               FRONTEND (Browser)           │
-                    │                                             │
-                    │  index.html  (5 tabs)                       │
-                    │    Values | Config | Health | Mock | Log    │
-                    │                                             │
-                    │  main.js (orchestrator, WS client, auth)    │
-                    │    ├── values.js   (pivot table)            │
-                    │    ├── config.js   (field selection)        │
-                    │    ├── health.js   (GET /health, 5s poll)   │
-                    │    ├── mock.js     (mock on/off toggles)    │
-                    │    └── log.js      (WS message log)         │
-                    │                                             │
-                    │      HTTP (auth)   +   WebSocket (live)     │
-                    └───────────────┬───────────────┬─────────────┘
-                                    │               │
-════════════════════════════════════╪═══════════════╪══════════════
-                                    │               │  Network
-                                    │               │
-                    ┌───────────────┴───────────────┴─────────────┐
-                    │               ADAPTERS (infra)              │
-                    │                                             │
-                    │  express-server.ts                          │
-                    │    • static files (renderer/)               │
-                    │    • POST /auth                             │
-                    │    • GET /health                            │
-                    │                                             │
-                    │  ws-bridge.ts (WebSocket)                   │
-                    │    • authenticates clients                  │
-                    │    • broadcasts device data to browsers     │
-                    │    • receives mock_toggle commands          │
-                    │                                             │
-                    │  mqtt-scanner.ts ──► ws-bridge.broadcast()  │
-                    │  unix-scanner.ts ──► ws-bridge.broadcast()  │
-                    │        └──────────────────────────────┐     │
-                    │  broker.ts (Aedes MQTT)               │     │
-                    │  pino-logger.ts                       │     │
-                    │  file-user-store.ts (.auth.json)      │     │
-                    │  mock-manager.ts (start/stop mocks)   │     │
-                    └──────────────────────────────┬───────────────┘
-                                                   │
-                    ┌──────────────────────────────┴───────────────┐
-                    │               PORTS (interfaces)            │
-                    │                                             │
-                    │  connector.ts   device-scanner.ts           │
-                    │  user-store.ts  logger.ts                   │
-                    └──────────────────────────────┬───────────────┘
-                                                   │
-                    ┌──────────────────────────────┴───────────────┐
-                    │               CORE (domain logic)           │
-                    │                                             │
-                    │  device-manager.ts  (lifecycle: join/leave) │
-                    │  auth-domain.ts     (UserLevel, canPerform) │
-                    │  flatten.ts         (flatten nested fields) │
-                    │  health-model.ts    (HealthData factory)    │
-                    │                                             │
-                    │   ZERO external dependencies                │
-                    └─────────────────────────────────────────────┘
-
-                    ┌─────────────────────────────────────────────┐
-                    │  MOCK DEVICES (test / demo only)            │
-                    │                                             │
-                    │  MQTT:  mqtt-counter.ts, mqtt-measurement.ts│
-                    │          ──mqtt-connector──► broker.ts      │
-                    │  Unix:  unix-counter.ts, unix-devices.ts    │
-                    │          ──direct socket (net.createServer) │
-                    └─────────────────────────────────────────────┘
-```
+![Component diagram](images/component-diagram.png)
 
 ## Data Flow
 

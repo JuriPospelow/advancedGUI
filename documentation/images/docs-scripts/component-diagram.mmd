@@ -1,0 +1,65 @@
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#f2f2f2","primaryBorderColor":"#999999","primaryTextColor":"#111"},"flowchart":{"rankDir":"TB","nodeSpacing":25,"rankSpacing":40,"useMaxWidth":false,"subGraphTitleMargin":{"top":10,"bottom":5}}}}%%
+
+flowchart TB
+    subgraph FE["FRONTEND (Browser)"]
+        direction TB
+        subgraph FER["index.html — 5 tabs"]
+            direction LR
+            T1["Values"] ~~~ T2["Config"] ~~~ T3["Health"] ~~~ T4["Mock"] ~~~ T5["Log"]
+        end
+        subgraph FEM["main.js (orchestrator, WS client, auth)"]
+            direction LR
+            J1["values.js · pivot table"]
+            J2["config.js · field selection"]
+            J3["health.js · GET /health 5s"]
+            J4["mock.js · on/off toggles"]
+            J5["log.js · WS log"]
+        end
+    end
+
+    subgraph ADAPT["ADAPTERS (infra)"]
+        direction TB
+        subgraph AEX["express-server.ts · static files, POST /auth, GET /health"]
+        end
+        subgraph AWS["ws-bridge.ts (WebSocket) · auth, broadcast data, mock_toggle commands"]
+        end
+        subgraph ASC["scanners → ws-bridge.broadcast()"]
+            direction LR
+            MQ["mqtt-scanner.ts"]
+            UQ["unix-scanner.ts"]
+        end
+        subgraph AOTH["other"]
+            direction LR
+            B1["broker.ts (Aedes MQTT)"]
+            LG["pino-logger.ts"]
+            US["file-user-store.ts (.auth.json)"]
+            MM["mock-manager.ts (start/stop mocks)"]
+        end
+    end
+
+    subgraph PORTS["PORTS (interfaces)"]
+        direction LR
+        C1["connector.ts"]
+        DS["device-scanner.ts"]
+        UST["user-store.ts"]
+        LGT["logger.ts"]
+    end
+
+    subgraph CORE["CORE (domain logic)"]
+        direction LR
+        DM["device-manager.ts<br/>(lifecycle join/leave)"]
+        AD["auth-domain.ts<br/>(UserLevel, canPerform)"]
+        FL["flatten.ts<br/>(flatten nested fields)"]
+        HM["health-model.ts<br/>(HealthData factory)"]
+    end
+
+    subgraph MOCK["MOCK DEVICES (test / demo only)"]
+        direction LR
+        MC["mqtt-counter.ts<br/>mqtt-measurement.ts"]
+        UC["unix-counter.ts<br/>unix-devices.ts"]
+    end
+
+    FE -- "HTTP (auth) + WebSocket (live)" --> ADAPT
+    ADAPT --> PORTS
+    PORTS --> CORE
+    MOCK -- "MQTT / net socket" --> ADAPT
