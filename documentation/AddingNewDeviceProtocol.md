@@ -26,7 +26,8 @@ src/adapter/serial-scanner.ts
 ```
 
 ```typescript
-import type { DeviceScanner, DeviceEvent, DeviceDataHandler } from "../port/device-scanner.js";
+import type { DeviceScanner, DeviceDataHandler } from "../port/device-scanner.js";
+import type { DeviceEvent } from "../core/device-manager.js";
 
 export function createSerialScanner(devicePath: string): DeviceScanner {
   let eventHandler: ((event: DeviceEvent) => void) | null = null;
