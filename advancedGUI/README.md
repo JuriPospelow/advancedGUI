@@ -86,11 +86,10 @@ npm test
 
 | Username | Password | Level | Access |
 |----------|----------|-------|--------|
+| — | — | guest | Values only |
 | `viewer` | `viewer` | viewer | Values + Config |
 | `operator` | `operator` | operator | + Log |
 | `admin` | `admin` | admin | + Health + Mock |
-
-Guest (no login) can only see the Values tab.
 
 ## Architecture
 
