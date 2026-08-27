@@ -121,6 +121,6 @@ Run: `npm test`
 | [Getting Started](documentation/GettingStarted.md) | Setup, Docker, device integration, configuration |
 | [Technical Decisions](documentation/technicalDescription.md) | Architecture, core, infrastructure, UI, test strategy |
 | [Component Diagram](documentation/component-diagram.md) | Detailed ASCII component diagram |
-| [Clean Architecture](documentation/clean-architecture-circles.md) | Hexagonal architecture circles |
+| [Clean Architecture](documentation/clean-architecture-layers.md) | Layered architecture [diagram](documentation/images/clean-architecture-layers.png) |
 | [Adding New Devices](documentation/AddingNewDeviceProtocol.md) | Guide for new protocols (serial, CAN, etc.) |
 | [Configurable Parameters](documentation/configurableParameters.md) | Environment variables and configuration |

@@ -1,0 +1,33 @@
+%%{init: {"theme":"base", "themeVariables": {"primaryColor":"#f2f2f2","primaryBorderColor":"#999999","primaryTextColor":"#111"}, "flowchart": {"rankDir":"TB","nodeSpacing":25,"rankSpacing":50,"useMaxWidth":false,"subGraphTitleMargin":{"top":10,"bottom":5}}}}%%
+flowchart TB
+    subgraph EXT["EXTERNAL (Drivers / Devices)"]
+        direction TB
+        subgraph EXTL1[" "]
+            direction LR
+            B1["Browser Frontend"] ~~~ B2["MQTT Devices"] ~~~ B3["Unix Socket Devices"]
+        end
+        subgraph EXTL2[" "]
+            direction LR
+            B4[".auth.json File system"] ~~~ B5["Docker / K8s (Health probes)"]
+        end
+    end
+
+    subgraph ADAPT["ADAPTERS (Infrastructure)"]
+        direction LR
+        A1["mqtt-connector"] ~~~ A2["mqtt-scanner"] ~~~ A3["unix-scanner"] ~~~ A4["pino-logger"] ~~~ A5["file-user-store"]
+        A6["express-server"] ~~~ A7["ws-bridge"] ~~~ A8["broker"] ~~~ A9["mock-manager"]
+    end
+
+    subgraph PORTS["PORTS (Interfaces)"]
+        direction LR
+        P1["connector"] ~~~ P2["device-scanner"] ~~~ P3["user-store"] ~~~ P4["logger"]
+    end
+
+    subgraph CORE["CORE (Domain)"]
+        direction LR
+        C1["device-manager"] ~~~ C2["auth-domain"] ~~~ C3["flatten"] ~~~ C4["health-model"]
+    end
+
+    EXT --> ADAPT
+    ADAPT --> PORTS
+    PORTS --> CORE

@@ -42,7 +42,6 @@
                     │  pino-logger.ts                       │     │
                     │  file-user-store.ts (.auth.json)      │     │
                     │  mock-manager.ts (start/stop mocks)   │     │
-                    │  shutdown.ts (graceful SIGTERM/SIGINT)│     │
                     └──────────────────────────────┬───────────────┘
                                                    │
                     ┌──────────────────────────────┴───────────────┐
@@ -131,6 +130,7 @@ Browser (Mock tab) ──WS {type:"mock_toggle"}──► ws-bridge.ts ──►
 ## Notes
 
 - The **scanners call `wsBridge.broadcast()` directly** (wired in `main/index.ts`). `device-manager.ts` handles lifecycle events only — it is **not** in the data path.
+- **`src/main/shutdown.ts`** (graceful SIGTERM/SIGINT handler) and `src/main/index.ts` form the **composition root** — they are wiring glue, not clean-architecture layer components, so they appear outside the Adapter layer.
 - There is **no `unix-connector.ts`**; Unix devices bind directly to socket files via `net.createServer`.
 - `table-engine` / `group-keys` logic lives in the **renderer** (`values.js`), not in core.
 - The Health tab gates visibility **client-side** by permission level; the `/health` endpoint itself is served to authenticated clients.
