@@ -1,161 +1,119 @@
-# Component Diagram — p9-advancedGUI (Approach 3)
+# Component Diagram — advancedGUI
+
+## Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        FRONTEND (Browser)                          │
-│                                                                     │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐          │
-│  │index.html │  │ main.js  │  │values.js │  │config.js │          │
-│  │ (3 tabs)  │──│(orchestr)│──│ (pivot)  │  │ (filter) │          │
-│  └──────────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘          │
-│                     │              │              │                │
-│                     │      ┌──────┴──────┐       │                │
-│                     │      │ health.js   │       │                │
-│                     │      │(HTTP poll)  │       │                │
-│                     │      └──────┬──────┘       │                │
-│                     │             │              │                │
-│                     │     HTTP GET /health       │                │
-│                     │             │              │                │
-│                     │     WebSocket (WS)         │                │
-│                     └──────────┬──┴──────────────┘                │
-└────────────────────────────────┼──────────────────────────────────┘
-                                 │
-═════════════════════════════════╪════════════════════════════════════
-                            Network
-═════════════════════════════════╪════════════════════════════════════
-                    ┌────────────┴───────────┐
-                    │   ADAPTERS (infra)      │
-┌───────────────────┴────────────────────────┴──────────────────────┐
-│                                                                    │
-│  ┌─────────────────────────────────────────────────────────────┐  │
-│  │  ws-bridge.ts   ◄─── WS clients + DeviceManager events      │  │
-│  │  (WebSocket)           ┌───────────┐                         │  │
-│  │                        │ Connector │ (interface)             │  │
-│  │  ┌─────────────────────┴─────┬─────┴──────────────────┐      │  │
-│  │  │                           │                        │      │  │
-│  │  ▼                           ▼                        ▼      │  │
-│  │  mqtt-connector.ts   unix-connector.ts        (future:       │  │
-│  │  (mqtt.js)           (net.unix)                serial, etc.)  │  │
-│  │                           │                        │         │  │
-│  │  ┌────────────────────────┴────────────────────────┘         │  │
-│  │  │  DeviceScanner (interface)                                │  │
-│  │  ┌──────┴──────────┬───────────┐                             │  │
-│  │  ▼                 ▼           │                             │  │
-│  │  unix-scanner.ts   mqtt-      │                             │  │
-│  │  (polls .sock dir) scanner.ts  │                             │  │
-│  │                      │         │                             │  │
-│  │  ┌───────────────────┘         │                             │  │
-│  │  │  Logger (interface)         │                             │  │
-│  │  ┌──────┴──────┐              │                             │  │
-│  │  ▼             ▼              │                             │  │
-│  │  pino-         (future:       │                             │  │
-│  │  logger.ts     file, etc.)    │                             │  │
-│  │                              │                             │  │
-│  │  ┌───────────────────────────┘                             │  │
-│  │  │  UserStore (interface)                                  │  │
-│  │  ┌──────┴──────────┐                                       │  │
-│  │  ▼                 ▼                                       │  │
-│  │  file-user-store   (future: DB, etc.)                     │  │
-│  │  (.auth.json)                                              │  │
-│  │                                                            │  │
-│  │  ┌─────────────────────────────────────────────┐           │  │
-│  │  │  express-server.ts                           │           │  │
-│  │  │  • static files (renderer/)                  │           │  │
-│  │  │  • GET /health (admin-only)                  │           │  │
-│  │  │  • WS upgrade on /ws                         │           │  │
-│  │  │  • auth middleware                            │           │  │
-│  │  └─────────────────────────────────────────────┘           │  │
-│  │                                                            │  │
-│  │  ┌────────────────────┐   ┌───────────┐                    │  │
-│  │  │  broker.ts         │   │shutdown.ts│                    │  │
-│  │  │  (Aedes MQTT)      │   │(SIGTERM)  │                    │  │
-│  │  └────────────────────┘   └───────────┘                    │  │
-│  └────────────────────────────────────────────────────────────┘  │
-│                                                                    │
-│  ┌─────────────────────────────────────────────────────────────┐  │
-│  │                    PORTS (interfaces)                        │  │
-│  │                                                              │  │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────┐  ┌─────┐  │  │
-│  │  │  connector   │  │device-scanner│  │user-store│  │logger│  │  │
-│  │  │ (interface)  │  │ (interface)  │  │(interface)│  │(intf)│  │  │
-│  │  └──────┬───────┘  └──────┬───────┘  └────┬─────┘  └──┬──┘  │  │
-│  │         │                 │               │           │     │  │
-│  └─────────┼─────────────────┼───────────────┼───────────┼─────┘  │
-│            │                 │               │           │        │
-│  ┌─────────┴─────────────────┴───────────────┴───────────┴─────┐  │
-│  │                    CORE (domain logic)                       │  │
-│  │                                                              │  │
-│  │  ┌─────────────┐  ┌──────────────┐  ┌───────────┐          │  │
-│  │  │table-engine │  │device-manager│  │auth-domain│          │  │
-│  │  │• flatten    │  │• track active│  │• User type│          │  │
-│  │  │• group keys │  │• lifecycle   │  │• roles    │          │  │
-│  │  │• diff calc  │  │  events      │  │• checkPerm│          │  │
-│  │  └─────────────┘  └──────────────┘  └───────────┘          │  │
-│  │                                      ┌───────────┐          │  │
-│  │                                      │health-model│         │  │
-│  │                                      │• status    │         │  │
-│  │                                      │• metrics   │         │  │
-│  │                                      └───────────┘          │  │
-│  │                                                              │  │
-│  │  ⚠ ZERO external dependencies                               │  │
-│  └─────────────────────────────────────────────────────────────┘  │
-│                                                                    │
-│  ┌─────────────────────────────────────────────────────────────┐  │
-│  │              MOCK DEVICES (test only)                        │  │
-│  │                                                              │  │
-│  │  ┌───────────────┐  devices.config.ts (enable/disable)      │  │
-│  │  │ MQTT Counter  │────────────────────────────────┐         │  │
-│  │  │ (existing)    │  ┌──────────────┐              │         │  │
-│  │  └───────┬───────┘  │MQTT Measure  │              │         │  │
-│  │          │          │(temp/hum/pres)│              │         │  │
-│  │          ▼          └──────┬───────┘              │         │  │
-│  │    ┌──────────────┐       │                      │         │  │
-│  │    │ MQTT Connector│◄──────┘                      │         │  │
-│  │    └──────┬───────┘                              │         │  │
-│  │           │                                       │         │  │
-│  │           ▼                                       │         │  │
-│  │    ┌──────────────┐                               │         │  │
-│  │    │ Aedes Broker  │                               │         │  │
-│  │    └──────────────┘                               │         │  │
-│  │                                                    │         │  │
-│  │  ┌──────────────────────────────────────┐          │         │  │
-│  │  │ Unix devices (via Unix Connector):   │          │         │  │
-│  │  │ ┌──────────┐ ┌────────┐ ┌────────┐  │          │         │  │
-│  │  │ │unix-     │ │unix-   │ │unix-   │  │          │         │  │
-│  │  │ │counter   │ │device-A│ │device-B│  │          │         │  │
-│  │  │ └──────────┘ └────────┘ └────────┘  │          │         │  │
-│  │  │ ┌──────────┐                         │          │         │  │
-│  │  │ │unix-     │                         │          │         │  │
-│  │  │ │device-C  │                         │          │         │  │
-│  │  │ └──────────┘                         │          │         │  │
-│  │  └──────────────────────────────────────┘          │         │  │
-│  └─────────────────────────────────────────────────────┘         │
-│                                                                    │
-│  ┌─────────────────────────────────────────────────────────────┐  │
-│  │                BOOTSTRAP                                     │  │
-│  │                                                              │  │
-│  │  ┌──────────────────────────────────────────────────────┐    │  │
-│  │  │  index.ts                                            │    │  │
-│  │  │  • create Logger adapter                              │    │  │
-│  │  │  • load .env config                                   │    │  │
-│  │  │  • start Broker (if MQTT enabled)                     │    │  │
-│  │  │  • create Scanners + DeviceManager (inject)           │    │  │
-│  │  │  • create Connectors (inject)                         │    │  │
-│  │  │  • create ExpressServer (inject logger, auth)         │    │  │
-│  │  │  • create WsBridge (inject connectors, auth, dm)      │    │  │
-│  │  │  • start HTTP server                                   │    │  │
-│  │  │  • register Shutdown handler                           │    │  │
-│  │  └──────────────────────────────────────────────────────┘    │  │
-│  │                                                              │  │
-│  │  Dependency arrows (index.ts wiring):                       │  │
-│  │                                                              │  │
-│  │  index.ts ──creates──► all Adapters                         │  │
-│  │  index.ts ──injects──► Adapters into each other             │  │
-│  │  Adapters ──implement──► Ports (interfaces)                 │  │
-│  │  Adapters ──use──────► Core (pure domain)                   │  │
-│  │  Core ──depends on──► nothing (zero deps)                   │  │
-│  └─────────────────────────────────────────────────────────────┘  │
-└────────────────────────────────────────────────────────────────────┘
+                    ┌─────────────────────────────────────────────┐
+                    │               FRONTEND (Browser)           │
+                    │                                             │
+                    │  index.html  (5 tabs)                       │
+                    │    Values | Config | Health | Mock | Log    │
+                    │                                             │
+                    │  main.js (orchestrator, WS client, auth)    │
+                    │    ├── values.js   (pivot table)            │
+                    │    ├── config.js   (field selection)        │
+                    │    ├── health.js   (GET /health, 5s poll)   │
+                    │    ├── mock.js     (mock on/off toggles)    │
+                    │    └── log.js      (WS message log)         │
+                    │                                             │
+                    │      HTTP (auth)   +   WebSocket (live)     │
+                    └───────────────┬───────────────┬─────────────┘
+                                    │               │
+════════════════════════════════════╪═══════════════╪══════════════
+                                    │               │  Network
+                                    │               │
+                    ┌───────────────┴───────────────┴─────────────┐
+                    │               ADAPTERS (infra)              │
+                    │                                             │
+                    │  express-server.ts                          │
+                    │    • static files (renderer/)               │
+                    │    • POST /auth                             │
+                    │    • GET /health                            │
+                    │                                             │
+                    │  ws-bridge.ts (WebSocket)                   │
+                    │    • authenticates clients                  │
+                    │    • broadcasts device data to browsers     │
+                    │    • receives mock_toggle commands          │
+                    │                                             │
+                    │  mqtt-scanner.ts ──► ws-bridge.broadcast()  │
+                    │  unix-scanner.ts ──► ws-bridge.broadcast()  │
+                    │        └──────────────────────────────┐     │
+                    │  broker.ts (Aedes MQTT)               │     │
+                    │  pino-logger.ts                       │     │
+                    │  file-user-store.ts (.auth.json)      │     │
+                    │  mock-manager.ts (start/stop mocks)   │     │
+                    │  shutdown.ts (graceful SIGTERM/SIGINT)│     │
+                    └──────────────────────────────┬───────────────┘
+                                                   │
+                    ┌──────────────────────────────┴───────────────┐
+                    │               PORTS (interfaces)            │
+                    │                                             │
+                    │  connector.ts   device-scanner.ts           │
+                    │  user-store.ts  logger.ts                   │
+                    └──────────────────────────────┬───────────────┘
+                                                   │
+                    ┌──────────────────────────────┴───────────────┐
+                    │               CORE (domain logic)           │
+                    │                                             │
+                    │  device-manager.ts  (lifecycle: join/leave) │
+                    │  auth-domain.ts     (UserLevel, canPerform) │
+                    │  flatten.ts         (flatten nested fields) │
+                    │  health-model.ts    (HealthData factory)    │
+                    │                                             │
+                    │   ZERO external dependencies                │
+                    └─────────────────────────────────────────────┘
+
+                    ┌─────────────────────────────────────────────┐
+                    │  MOCK DEVICES (test / demo only)            │
+                    │                                             │
+                    │  MQTT:  mqtt-counter.ts, mqtt-measurement.ts│
+                    │          ──mqtt-connector──► broker.ts      │
+                    │  Unix:  unix-counter.ts, unix-devices.ts    │
+                    │          ──direct socket (net.createServer) │
+                    └─────────────────────────────────────────────┘
+```
+
+## Data Flow
+
+### MQTT device data
+
+```
+MQTT Mock ──MQTT──► broker.ts ──MQTT──► mqtt-scanner.ts ──callback──► ws-bridge.broadcast() ──WS──► Browser
+```
+
+### Unix device data
+
+```
+Unix Mock ──socket (.)──► unix-scanner.ts (polls .sock dir, sends "state?\n")
+                                    └──callback──► ws-bridge.broadcast() ──WS──► Browser
+```
+
+### Lifecycle (both transports)
+
+```
+scanner (onEvent: joined/left) ──► device-manager.ts ──► ws-bridge.broadcast({type:"devices"}) ──WS──► Browser
+```
+
+### Auth (HTTP — login)
+
+```
+Browser ──POST /auth──► express-server.ts ──► file-user-store.ts ──► .auth.json
+                                                        │
+                                                        └── returns { level } to browser
+```
+
+### Auth (WebSocket — session)
+
+```
+Browser ──{type:"auth",user,pass}──► ws-bridge.ts ──► file-user-store.ts ──► .auth.json
+                                                        │
+                                                        └── client level tracked in bridge
+```
+
+### Mock device management
+
+```
+Browser (Mock tab) ──WS {type:"mock_toggle"}──► ws-bridge.ts ──► mock-manager.ts.start()/stop() ──► mock device created/destroyed
 ```
 
 ## Key dependency rules
@@ -163,9 +121,16 @@
 | Layer | Depends on | Notes |
 |-------|-----------|-------|
 | **Core** | nothing | Pure TypeScript, zero external libraries |
-| **Ports** | nothing | Pure TypeScript interfaces |
-| **Adapters** | Ports + Core | Implements interfaces, uses domain types |
-| **index.ts** | all Adapters | Creates and wires everything (DI) |
+| **Ports** | Core types | Pure TypeScript interfaces |
+| **Adapters** | Ports + Core | Implement interfaces, use domain types |
+| **index.ts** | all Adapters | Creates and wires everything (composition root) |
 | **Frontend (WS)** | ws-bridge.ts | main.js ↔ ws-bridge via WebSocket |
-| **Frontend (HTTP)** | express-server.ts | health.js ↔ GET /health via fetch |
-| **Mock devices** | Connector interface | Same as real devices, configurable on/off |
+| **Frontend (HTTP)** | express-server.ts | health.js ↔ GET /health via fetch; login via POST /auth |
+| **Mock devices** | connector (MQTT) / net (Unix) | Same interface pattern as real devices |
+
+## Notes
+
+- The **scanners call `wsBridge.broadcast()` directly** (wired in `main/index.ts`). `device-manager.ts` handles lifecycle events only — it is **not** in the data path.
+- There is **no `unix-connector.ts`**; Unix devices bind directly to socket files via `net.createServer`.
+- `table-engine` / `group-keys` logic lives in the **renderer** (`values.js`), not in core.
+- The Health tab gates visibility **client-side** by permission level; the `/health` endpoint itself is served to authenticated clients.
