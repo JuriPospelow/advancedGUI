@@ -1,4 +1,4 @@
-# Clean Architecture Circles — p9-advancedGUI
+# Clean Architecture Circles — advancedGUI
 
 ```
                   ┌─────────────────────────────────────┐
@@ -15,9 +15,9 @@
                   │   │   │  │     CORE       │  │   │   │
                   │   │   │  │  (Domain)      │  │   │   │
                   │   │   │  │                │  │   │   │
-                  │   │   │  │  table-engine  │  │   │   │
-                  │   │   │  │  device-mgr    │  │   │   │
+                  │   │   │  │  device-manager │  │   │   │
                   │   │   │  │  auth-domain   │  │   │   │
+                  │   │   │  │  flatten       │  │   │   │
                   │   │   │  │  health-model  │  │   │   │
                   │   │   │  │                │  │   │   │
                   │   │   │  └───────▲────────┘  │   │   │
@@ -33,14 +33,14 @@
                   │   │              │                 │   │
                   │   │  ┌───────────┴─────────────┐   │   │
                   │   │  │  mqtt-connector         │   │   │
-                  │   │  │  unix-connector         │   │   │
-                  │   │  │  unix-scanner           │   │   │
                   │   │  │  mqtt-scanner           │   │   │
+                  │   │  │  unix-scanner           │   │   │
                   │   │  │  pino-logger            │   │   │
                   │   │  │  file-user-store        │   │   │
                   │   │  │  express-server         │   │   │
                   │   │  │  ws-bridge              │   │   │
                   │   │  │  broker                 │   │   │
+                  │   │  │  mock-manager           │   │   │
                   │   │  │  shutdown               │   │   │
                   │   │  └───────▲─────────────────┘   │   │
                   │   │          │                       │   │
@@ -70,52 +70,47 @@
 
 | Layer | Contents | Depends on | Knows about |
 |-------|----------|-----------|-------------|
-| **Core** | table-engine, device-manager, auth-domain, health-model | nothing (pure TS) | nothing outside |
+| **Core** | device-manager, auth-domain, flatten, health-model | nothing (pure TS) | nothing outside |
 | **Ports** | Connector, DeviceScanner, UserStore, Logger interfaces | nothing (pure TS interfaces) | Core types |
-| **Adapters** | mqtt-connector, unix-connector, unix-scanner, mqtt-scanner, pino-logger, file-user-store, express-server, ws-bridge, broker, shutdown | Ports + Core | Ports interfaces |
+| **Adapters** | mqtt-connector, mqtt-scanner, unix-scanner, pino-logger, file-user-store, express-server, ws-bridge, broker, mock-manager, shutdown | Ports + Core | Ports interfaces |
 | **External** | Browser, MQTT devices, Unix sockets, .auth.json, Docker | nothing | Adapters (via network/FS) |
 
 ## Data Flow (Arrow of Dependence vs Arrow of Data)
 
 ```
-Data flows OUTWARD:
-───────────────────────────────────────────────────────────
+Data flows OUTWARD from devices to the browser:
 
-  Core ──► Ports ──► Adapters ──► External
+  MQTT Device ──► broker ──► mqtt-scanner ──► ws-bridge ──► Browser
+  Unix Device  ───────────► unix-scanner ──► ws-bridge ──► Browser
 
-  (domain events are pushed through interfaces to infra)
+  (scanners call wsBridge.broadcast() directly — wired in main/index.ts)
+
+Lifecycle events flow through the domain:
+
+  scanner (joined/left) ──► device-manager ──► ws-bridge.broadcast() ──► Browser
 
 Control flows INWARD:
-───────────────────────────────────────────────────────────
 
-  External ──► Adapters ──► Ports ──► Core
-
-  (HTTP request arrives → adapter calls port → core processes)
-
-Cross-boundary communication:
-───────────────────────────────────────────────────────────
-
-  External Request     Adapter calls        Core returns
-  (HTTP GET /health) ──► Port method ──────► pure function
-                         │                    │
-                         ◄────────────────────┘
-                         result mapped to
-                         HTTP response
+  Browser action (login, mock toggle) ──► adapter ──► port/store ──► core logic
 ```
 
-## Example: Device discovery flow
+## Data vs Lifecycle
+
+The scanners and `device-manager` serve different roles:
+
+- **Data path**: `deviceManager` is **not** involved. Scanners push raw device data straight to `ws-bridge.broadcast()` (wired in `main/index.ts`).
+- **Lifecycle path**: `device-manager` tracks active devices and emits `joined`/`left` events, which the bridge forwards to browsers.
+
+## Example: Device discovery (Unix) flow
 
 ```
-┌─────────┐    polls      ┌──────────────┐   onJoined/left   ┌──────────────┐
-│  unix-  │──────────────►│  device-     │──────────────────►│  ws-bridge   │
-│  scanner│  .sock files  │  manager     │  DeviceEvent      │──────────────► WS
-│ (Adapter)│              │ (Core)       │                  │ (Adapter)    │
-└─────────┘              └──────────────┘                  └──────────────┘
-     │                         │                                  │
-     │ implements              │ uses port                        │ implements
-     ▼                         ▼                                  ▼
-┌──────────────┐        ┌──────────────┐                  ┌──────────────┐
-│ DeviceScanner│        │  Core only   │                  │  Connector   │
-│ (Port)       │        │  pure logic  │                  │  (Port)      │
-└──────────────┘        └──────────────┘                  └──────────────┘
+┌─────────┐   polls .sock   ┌──────────────┐  joined/left    ┌──────────────┐
+│  unix-  │───────────────► │  device-     │────────────────►│  ws-bridge   │
+│  scanner│   directory     │  manager     │  DeviceEvent    │──────────────► WS
+│ (Adapter)│                │ (Core)       │  (lifecycle)    │ (Adapter)    │
+└─────────┘                └──────────────┘                 └──────────────┘
+     │                                                             │
+     │ data (state?) response                                     │ data
+     │                                                             │
+     └───────────────────────────────────────► ws-bridge.broadcast() ──► WS
 ```
